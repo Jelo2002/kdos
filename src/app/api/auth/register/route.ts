@@ -26,8 +26,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const assignedRole: StaffRole = role || 'Interviewer';
-    const assignedDept = department || 'Recruitment & Interviews';
+    // Security: Public self-registration is strictly restricted to Staff / Interviewer.
+    // Leadership roles (Owner, Developer, Admin) can only be provisioned by existing leadership.
+    const assignedRole: StaffRole = 'Interviewer';
+    const assignedDept = 'Recruitment & Interviews';
 
     const newStaff = await createStaff({
       ign: ign.trim(),

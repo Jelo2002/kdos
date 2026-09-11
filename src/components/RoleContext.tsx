@@ -8,7 +8,8 @@ interface RoleContextType {
   setRole: (role: ActiveRole) => void;
   staffName: string;
   setStaffName: (name: string) => void;
-  isOwnerOrDev: boolean;
+  isOwnerOrDev: boolean; // True for Owner, Developer, Admin
+  isAdmin: boolean;
   isStaff: boolean;
   isAuthenticated: boolean;
   isLoadingAuth: boolean;
@@ -91,7 +92,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const isOwnerOrDev = role === 'Owner' || role === 'Developer';
+  const isOwnerOrDev = role === 'Owner' || role === 'Developer' || role === 'Admin';
+  const isAdmin = role === 'Admin';
   const isStaff = role === 'Staff/Interviewer';
 
   return (
@@ -102,6 +104,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         staffName,
         setStaffName,
         isOwnerOrDev,
+        isAdmin,
         isStaff,
         isAuthenticated,
         isLoadingAuth,

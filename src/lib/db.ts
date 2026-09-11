@@ -77,6 +77,19 @@ const initialCandidates: Candidate[] = [
 
 const initialStaff: StaffMember[] = [
   {
+    id: 's-zenku',
+    ign: 'Zenku8258',
+    discord_tag: 'Zenku8258',
+    role: 'Developer',
+    department: 'Development & Tech',
+    status: 'Active',
+    pin: null, // First sign-in prompts Zenku8258 to set their personal PIN
+    loa_reason: null,
+    loa_return_date: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
     id: 's-1',
     ign: 'Kev_Owner',
     discord_tag: 'kev_owner#0001',

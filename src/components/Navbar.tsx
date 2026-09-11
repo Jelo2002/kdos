@@ -34,6 +34,7 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
   const rolesList: { role: ActiveRole; label: string }[] = [
     { role: 'Owner', label: 'Owner View' },
     { role: 'Developer', label: 'Developer View' },
+    { role: 'Admin', label: 'Admin View' },
   ];
 
   return (

@@ -413,15 +413,13 @@ export default function LoginScreen() {
               <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1">
                 Assigned Role
               </label>
-              <select
-                value={regRole}
-                onChange={(e) => setRegRole(e.target.value as ActiveRole)}
-                className="w-full px-2.5 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400"
-              >
-                <option value="Staff/Interviewer">Staff / Interviewer</option>
-                <option value="Developer">Developer</option>
-                <option value="Owner">Owner</option>
-              </select>
+              <div className="px-3 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-300 text-xs flex items-center justify-between">
+                <span>Staff / Interviewer</span>
+                <span className="text-[10px] text-zinc-500 font-mono">Evaluator</span>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-1">
+                Leadership roles (Admin, Developer, Owner) are strictly provisioned by leadership.
+              </p>
             </div>
 
             <div>

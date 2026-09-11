@@ -71,9 +71,10 @@ INSERT INTO candidates (ign, rating, notes, interviewer_ign, status, tags) VALUE
 ('PixelCraftie', 3, 'Friendly builder, decent answers to lore questions. However, only plays 1-2 hours on weekends. Decent mic.', 'Avery_Dev', 'pending', '["Casual", "Builder"]'::jsonb);
 
 -- SEED SAMPLE STAFF MEMBERS (Illustrating Active, LOA, and Hiatus)
-INSERT INTO staff (ign, discord_tag, role, department, status, loa_reason, loa_return_date) VALUES
-('Kev_Owner', 'kev_owner#0001', 'Owner', 'Management & Leadership', 'Active', NULL, NULL),
-('Avery_Dev', 'avery.dev#1337', 'Developer', 'Development & Tech', 'Active', NULL, NULL),
+INSERT INTO staff (ign, discord_tag, role, department, status, pin, loa_reason, loa_return_date) VALUES
+('Zenku8258', 'Zenku8258', 'Developer', 'Development & Tech', 'Active', NULL, NULL, NULL),
+('Kev_Owner', 'kev_owner#0001', 'Owner', 'Management & Leadership', 'Active', NULL, NULL, NULL),
+('Avery_Dev', 'avery.dev#1337', 'Developer', 'Development & Tech', 'Active', NULL, NULL, NULL),
 ('Sarah_Mod', 'sarah_staff#4421', 'Moderator', 'Server Moderation', 'Active', NULL, NULL),
 ('PixelWatcher', 'pixel_mod#8899', 'Moderator', 'Server Moderation', 'LOA', 'College midterm exams and study week', '2026-09-25'),
 ('BlockDoctor', 'blockdoc#2211', 'Interviewer', 'Recruitment & Interviews', 'Active', NULL, NULL),

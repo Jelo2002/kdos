@@ -42,7 +42,7 @@ export interface DepartmentHealth {
   deficiency_count: number; // min_required_staff - active_staff (if > 0)
 }
 
-export type ActiveRole = 'Owner' | 'Developer' | 'Staff/Interviewer';
+export type ActiveRole = 'Owner' | 'Developer' | 'Admin' | 'Staff/Interviewer';
 
 export interface AuthUser {
   id?: string;
