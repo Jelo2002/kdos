@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { StaffMember, StaffRole, StaffStatus } from '@/lib/types';
 import SkinAvatar from './SkinAvatar';
-import { X, Trash2 } from 'lucide-react';
+import { X, Trash2, KeyRound, RotateCcw, Check } from 'lucide-react';
 
 interface StaffModalProps {
   staffMember: StaffMember | null;
@@ -29,10 +29,14 @@ export default function StaffModal({
   const [role, setRole] = useState<StaffRole>('Interviewer');
   const [department, setDepartment] = useState('Recruitment & Interviews');
   const [status, setStatus] = useState<StaffStatus>('Active');
+  const [pinOverride, setPinOverride] = useState('');
+  const [hasPin, setHasPin] = useState(false);
   const [loaReason, setLoaReason] = useState('');
   const [loaReturnDate, setLoaReturnDate] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isResettingPin, setIsResettingPin] = useState(false);
+  const [pinStatusMsg, setPinStatusMsg] = useState('');
 
   useEffect(() => {
     if (staffMember) {
@@ -41,6 +45,9 @@ export default function StaffModal({
       setRole(staffMember.role);
       setDepartment(staffMember.department);
       setStatus(staffMember.status);
+      setHasPin(!!staffMember.pin);
+      setPinOverride('');
+      setPinStatusMsg('');
       setLoaReason(staffMember.loa_reason || '');
       setLoaReturnDate(staffMember.loa_return_date ? staffMember.loa_return_date.substring(0, 10) : '');
     } else {
@@ -49,10 +56,37 @@ export default function StaffModal({
       setRole('Interviewer');
       setDepartment('Recruitment & Interviews');
       setStatus('Active');
+      setHasPin(false);
+      setPinOverride('');
+      setPinStatusMsg('');
       setLoaReason('');
       setLoaReturnDate('');
     }
   }, [staffMember, isOpen]);
+
+  const handleResetPin = async () => {
+    if (!staffMember) return;
+    setIsResettingPin(true);
+    setPinStatusMsg('');
+    try {
+      const res = await fetch('/api/auth/reset-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId: staffMember.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setHasPin(false);
+        setPinStatusMsg('PIN successfully reset. User will assign a new PIN on next login.');
+      } else {
+        setPinStatusMsg('Failed to reset PIN.');
+      }
+    } catch (e) {
+      setPinStatusMsg('Error resetting PIN.');
+    } finally {
+      setIsResettingPin(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +94,7 @@ export default function StaffModal({
 
     setIsSaving(true);
     try {
-      await onSave({
+      const updates: Partial<StaffMember> = {
         ign: ign.trim(),
         discord_tag: discordTag.trim(),
         role,
@@ -68,7 +102,13 @@ export default function StaffModal({
         status,
         loa_reason: status === 'Active' ? null : loaReason,
         loa_return_date: status === 'Active' ? null : (loaReturnDate || null),
-      });
+      };
+
+      if (pinOverride.trim()) {
+        updates.pin = pinOverride.trim();
+      }
+
+      await onSave(updates);
       onClose();
     } finally {
       setIsSaving(false);
@@ -99,7 +139,7 @@ export default function StaffModal({
                 {isEditing ? `Edit Team Member (${staffMember.ign})` : 'New Staff Member'}
               </h2>
               <p className="text-[11px] text-zinc-500">
-                Workforce profile & availability management
+                Workforce profile, PIN security & availability
               </p>
             </div>
           </div>
@@ -130,13 +170,14 @@ export default function StaffModal({
 
           <div>
             <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1">
-              Discord Handle
+              Discord Handle <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
+              required
               value={discordTag}
               onChange={(e) => setDiscordTag(e.target.value)}
-              placeholder="e.g. username#0000 or @username"
+              placeholder="e.g. username#0000 or username"
               className="w-full px-3 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 font-mono"
             />
           </div>
@@ -176,6 +217,55 @@ export default function StaffModal({
                 <option value="Community & Events">Community & Events</option>
                 <option value="Management & Leadership">Management & Leadership</option>
               </select>
+            </div>
+          </div>
+
+          {/* Security PIN Administration */}
+          <div className="p-3 rounded-md bg-zinc-950 border border-zinc-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-[11px] uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+                <KeyRound className="w-3 h-3 text-zinc-400" />
+                Security PIN Management
+              </span>
+              <span className="text-[10px] font-mono text-zinc-500">
+                {hasPin ? 'PIN Active' : 'No PIN Assigned'}
+              </span>
+            </div>
+
+            {pinStatusMsg && (
+              <p className="text-[10px] text-emerald-400 bg-emerald-950/40 p-1.5 rounded border border-emerald-800/40">
+                {pinStatusMsg}
+              </p>
+            )}
+
+            {isEditing && (
+              <div className="flex items-center justify-between pt-1">
+                <p className="text-[10px] text-zinc-500">
+                  Resetting requires the staff member to assign a new PIN.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetPin}
+                  disabled={isResettingPin}
+                  className="px-2 py-1 rounded text-[10px] font-medium bg-zinc-850 hover:bg-zinc-800 text-amber-300 border border-zinc-750 flex items-center gap-1 transition-colors"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  {isResettingPin ? 'Resetting...' : 'Reset PIN'}
+                </button>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[10px] text-zinc-500 mb-0.5">
+                {isEditing ? 'Directly Override PIN (Optional)' : 'Assign Initial PIN (Optional)'}
+              </label>
+              <input
+                type="password"
+                value={pinOverride}
+                onChange={(e) => setPinOverride(e.target.value)}
+                placeholder="Leave blank to let user assign their own PIN"
+                className="w-full px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-200 text-xs font-mono"
+              />
             </div>
           </div>
 

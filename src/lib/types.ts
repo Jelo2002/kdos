@@ -23,6 +23,7 @@ export interface StaffMember {
   role: StaffRole;
   department: string;
   status: StaffStatus;
+  pin?: string | null;
   loa_reason?: string | null;
   loa_return_date?: string | null;
   created_at: string;
@@ -42,6 +43,16 @@ export interface DepartmentHealth {
 }
 
 export type ActiveRole = 'Owner' | 'Developer' | 'Staff/Interviewer';
+
+export interface AuthUser {
+  id?: string;
+  ign: string;
+  discord_tag: string;
+  role: ActiveRole;
+  department?: string;
+  loginTime: string;
+  remember?: boolean;
+}
 
 export interface SystemStats {
   candidates: {

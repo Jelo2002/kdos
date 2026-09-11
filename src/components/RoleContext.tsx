@@ -1,13 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ActiveRole } from '@/lib/types';
-
-export interface AuthUser {
-  ign: string;
-  role: ActiveRole;
-  loginTime: string;
-}
+import { ActiveRole, AuthUser } from '@/lib/types';
 
 interface RoleContextType {
   role: ActiveRole;
@@ -19,103 +13,81 @@ interface RoleContextType {
   isAuthenticated: boolean;
   isLoadingAuth: boolean;
   user: AuthUser | null;
-  login: (role: ActiveRole, ign: string, passcode: string) => { success: boolean; error?: string };
+  setUser: (user: AuthUser | null) => void;
+  loginSession: (user: AuthUser, remember?: boolean) => void;
   logout: () => void;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
-// Configurable passcodes (can be overridden in Vercel environment variables)
-const PASSCODES = {
-  Owner: process.env.NEXT_PUBLIC_OWNER_PIN || 'owner123',
-  Developer: process.env.NEXT_PUBLIC_DEV_PIN || 'dev123',
-  'Staff/Interviewer': process.env.NEXT_PUBLIC_STAFF_PIN || 'staff123',
-};
-
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<ActiveRole>('Staff/Interviewer');
   const [staffName, setStaffNameState] = useState<string>('');
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUserState] = useState<AuthUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
+  // Load cached authentication on initial mount
   useEffect(() => {
     try {
-      const savedAuth = localStorage.getItem('kdos_auth_user');
-      if (savedAuth) {
-        const parsed = JSON.parse(savedAuth) as AuthUser;
-        if (parsed && parsed.role && parsed.ign) {
-          setUser(parsed);
+      const cached = localStorage.getItem('kdos_auth_session');
+      if (cached) {
+        const parsed = JSON.parse(cached) as AuthUser;
+        if (parsed && parsed.ign && parsed.role) {
+          setUserState(parsed);
           setRoleState(parsed.role);
           setStaffNameState(parsed.ign);
           setIsAuthenticated(true);
         }
       }
-    } catch (e) {
-      console.warn('Failed to parse saved auth:', e);
+    } catch (err) {
+      console.warn('Error reading cached auth session:', err);
     } finally {
       setIsLoadingAuth(false);
     }
   }, []);
 
-  const login = (selectedRole: ActiveRole, ign: string, passcode: string): { success: boolean; error?: string } => {
-    const cleanIgn = ign.trim();
-    const cleanPass = passcode.trim();
-
-    if (!cleanIgn) {
-      return { success: false, error: 'Please enter your Minecraft In-Game Name (IGN)' };
-    }
-
-    const expectedPass = PASSCODES[selectedRole];
-    if (cleanPass !== expectedPass) {
-      return { 
-        success: false, 
-        error: `Incorrect passcode for ${selectedRole}. (Hint: check default credentials below)` 
-      };
-    }
-
-    const authUser: AuthUser = {
-      ign: cleanIgn,
-      role: selectedRole,
+  const loginSession = (authUser: AuthUser, remember: boolean = true) => {
+    const sessionData: AuthUser = {
+      ...authUser,
       loginTime: new Date().toISOString(),
+      remember,
     };
 
-    setUser(authUser);
-    setRoleState(selectedRole);
-    setStaffNameState(cleanIgn);
+    setUserState(sessionData);
+    setRoleState(sessionData.role);
+    setStaffNameState(sessionData.ign);
     setIsAuthenticated(true);
 
-    localStorage.setItem('kdos_auth_user', JSON.stringify(authUser));
-    localStorage.setItem('kdos_role', selectedRole);
-    localStorage.setItem('kdos_staff_name', cleanIgn);
-
-    return { success: true };
+    if (remember) {
+      localStorage.setItem('kdos_auth_session', JSON.stringify(sessionData));
+    } else {
+      sessionStorage.setItem('kdos_auth_session', JSON.stringify(sessionData));
+    }
   };
 
   const logout = () => {
-    setUser(null);
+    setUserState(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('kdos_auth_user');
-    localStorage.removeItem('kdos_role');
+    localStorage.removeItem('kdos_auth_session');
+    sessionStorage.removeItem('kdos_auth_session');
   };
 
   const setRole = (newRole: ActiveRole) => {
     setRoleState(newRole);
     if (user) {
       const updatedUser = { ...user, role: newRole };
-      setUser(updatedUser);
-      localStorage.setItem('kdos_auth_user', JSON.stringify(updatedUser));
-      localStorage.setItem('kdos_role', newRole);
+      setUserState(updatedUser);
+      localStorage.setItem('kdos_auth_session', JSON.stringify(updatedUser));
     }
   };
 
   const setStaffName = (name: string) => {
     setStaffNameState(name);
-    localStorage.setItem('kdos_staff_name', name);
     if (user) {
       const updatedUser = { ...user, ign: name };
-      setUser(updatedUser);
-      localStorage.setItem('kdos_auth_user', JSON.stringify(updatedUser));
+      setUserState(updatedUser);
+      localStorage.setItem('kdos_auth_session', JSON.stringify(updatedUser));
     }
   };
 
@@ -134,7 +106,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         isLoadingAuth,
         user,
-        login,
+        setUser: setUserState,
+        loginSession,
         logout,
       }}
     >

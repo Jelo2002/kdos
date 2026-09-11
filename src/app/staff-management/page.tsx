@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Edit2,
   CheckCircle2,
-  Filter
+  Filter,
+  KeyRound
 } from 'lucide-react';
 
 export default function StaffManagementPage() {
@@ -106,6 +107,25 @@ export default function StaffManagementPage() {
     } catch (err) {
       console.error('Failed to update status:', err);
       fetchStaffData();
+    }
+  };
+
+  const handleResetPinQuick = async (id: string, ign: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`Reset security PIN for ${ign}? They will be prompted to assign a new PIN upon next sign in.`)) return;
+    try {
+      const res = await fetch('/api/auth/reset-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId: id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Security PIN for ${ign} has been reset.`);
+        fetchStaffData();
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -395,11 +415,20 @@ export default function StaffManagementPage() {
 
                             <button
                               type="button"
+                              onClick={(e) => handleResetPinQuick(member.id, member.ign, e)}
+                              className="p-1 text-zinc-500 hover:text-amber-300 ml-0.5 rounded transition-colors"
+                              title="Reset Security PIN (User can set new PIN)"
+                            >
+                              <KeyRound className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => {
                                 setEditingStaffMember(member);
                                 setIsStaffModalOpen(true);
                               }}
-                              className="p-1 text-zinc-500 hover:text-zinc-200 ml-1"
+                              className="p-1 text-zinc-500 hover:text-zinc-200 ml-0.5"
                               title="Edit team member"
                             >
                               <Edit2 className="w-3.5 h-3.5" />

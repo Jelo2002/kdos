@@ -83,6 +83,7 @@ const initialStaff: StaffMember[] = [
     role: 'Owner',
     department: 'Management & Leadership',
     status: 'Active',
+    pin: '1234', // Default PIN for initial demo owner
     loa_reason: null,
     loa_return_date: null,
     created_at: '2026-01-01T00:00:00Z',
@@ -95,6 +96,7 @@ const initialStaff: StaffMember[] = [
     role: 'Developer',
     department: 'Development & Tech',
     status: 'Active',
+    pin: '1234', // Default PIN for initial demo dev
     loa_reason: null,
     loa_return_date: null,
     created_at: '2026-01-10T00:00:00Z',
@@ -508,3 +510,30 @@ export async function getAcceptedWhitelist(): Promise<{ ignList: string[]; comma
 
   return { ignList, commands, json };
 }
+
+// =========================================================
+// DISCORD & PIN AUTHENTICATION HELPERS
+// =========================================================
+
+function normalizeDiscord(tag: string): string {
+  return tag.trim().toLowerCase().replace(/^@/, '');
+}
+
+export async function findStaffByDiscord(discordTag: string): Promise<StaffMember | null> {
+  const normalized = normalizeDiscord(discordTag);
+  const staff = await getStaff();
+  
+  return staff.find(s => {
+    const sTag = normalizeDiscord(s.discord_tag);
+    return sTag === normalized || sTag.split('#')[0] === normalized;
+  }) || null;
+}
+
+export async function setStaffPin(id: string, pin: string): Promise<StaffMember | null> {
+  return updateStaff(id, { pin: pin.trim() });
+}
+
+export async function resetStaffPin(id: string): Promise<StaffMember | null> {
+  return updateStaff(id, { pin: null });
+}
+

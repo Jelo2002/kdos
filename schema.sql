@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS staff (
     role VARCHAR(32) NOT NULL CHECK (role IN ('Owner', 'Developer', 'Admin', 'Moderator', 'Interviewer', 'Builder')),
     department VARCHAR(64) NOT NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Hiatus', 'LOA', 'Inactive')),
+    pin VARCHAR(128),
     loa_reason TEXT,
     loa_return_date DATE,
     created_at TIMESTAMPTZ DEFAULT NOW(),

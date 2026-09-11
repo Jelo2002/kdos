@@ -31,16 +31,17 @@ A modern, full-stack web application designed for Minecraft SMP communities. Bui
 - Status tracking: **Active**, **Hiatus**, and **LOA (Leave of Absence)** with return dates and reasons.
 - **Department Deficiency Monitor**: Automatically detects if active staff falls below required minimums and flags understaffed departments with prominent **"LACKING STAFF"** alerts.
 
-### 5. 🔐 Quick Login Gate & Role Access
-- **Private Access Gate**: Visitors do not see the internal candidate database upfront.
-- **Role-Separated Portals**:
-  - **Staff / Interviewers** log in with their Minecraft IGN and staff passcode to jump straight into the Interview Portal (`/interview`).
-  - **Owners & Developers** log in with their admin passcode to unlock the Candidate DBMS and Staff Management System.
-- **Default Passcodes** (Click to auto-fill or customize in Vercel Environment Variables):
-  - **Owner**: `owner123` (`NEXT_PUBLIC_OWNER_PIN`)
-  - **Developer**: `dev123` (`NEXT_PUBLIC_DEV_PIN`)
-  - **Staff**: `staff123` (`NEXT_PUBLIC_STAFF_PIN`)
-- **One-Click Logout**: Securely end session anytime.
+### 5. 🔐 Discord Username & Unique PIN Authentication
+- **Private Access Gate**: Visitors cannot view candidate records or staff rosters upfront.
+- **Discord + Unique PIN Login**:
+  - Sign in with your registered **Discord username** and your **personal security PIN**.
+  - **Self-Assign PIN**: First-time staff members can set their own unique 4+ digit PIN on first sign-in.
+  - **Self-Registration**: New team members can register their Discord handle, Minecraft IGN, role, and PIN.
+- **Persistent Device Caching**:
+  - Includes a "Remember session on this device" setting (enabled by default) so you don't need to sign in every time you reopen the site!
+- **Owner & Developer PIN Reset**:
+  - Owners and Developers can reset any staff member's PIN in the **Staff Management** dashboard or modal, prompting the user to set a new PIN on next login.
+- **One-Click Logout**: Securely terminate the cached session anytime from the top navigation bar.
 
 ---
 
