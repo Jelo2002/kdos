@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { DepartmentHealth } from '@/lib/types';
-import { Users, AlertTriangle, CheckCircle2, Clock, Moon } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface DepartmentCardProps {
   department: DepartmentHealth;
@@ -16,95 +16,61 @@ export default function DepartmentCard({
   onSelect,
 }: DepartmentCardProps) {
   const { name, min_required_staff, total_staff, active_staff, loa_staff, hiatus_staff, is_lacking, deficiency_count } = department;
-
   const percentActive = Math.min(100, Math.round((active_staff / Math.max(1, min_required_staff)) * 100));
 
   return (
     <div
       onClick={onSelect}
-      className={`p-4 rounded-xl border transition-all duration-200 cursor-pointer text-left relative overflow-hidden ${
+      className={`p-3.5 rounded-lg border transition-all cursor-pointer text-left ${
         isSelected
-          ? 'bg-gray-900/95 border-emerald-500 shadow-lg shadow-emerald-500/10 ring-1 ring-emerald-500'
-          : 'bg-gray-900/60 border-gray-800 hover:border-gray-700 hover:bg-gray-900'
+          ? 'bg-zinc-900 border-zinc-500 shadow-sm'
+          : 'bg-zinc-900/40 border-zinc-800/90 hover:bg-zinc-900/80 hover:border-zinc-700'
       }`}
     >
-      {/* Top Bar with Lacking Badge */}
-      <div className="flex items-start justify-between gap-2 mb-2.5">
-        <h3 className="font-bold text-sm text-white tracking-tight line-clamp-1">
+      {/* Title & Status */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <h3 className="font-semibold text-xs text-zinc-100 line-clamp-1">
           {name}
         </h3>
 
         {is_lacking ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-950/90 text-red-400 border border-red-500/40 animate-pulse">
-            <AlertTriangle className="w-3 h-3" />
-            LACKING ({deficiency_count})
-          </span>
-        ) : active_staff === min_required_staff ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-950/80 text-amber-400 border border-amber-500/30">
-            ADEQUATE
+          <span className="text-[10px] font-medium font-mono px-1.5 py-0.5 rounded bg-rose-950/60 border border-rose-800/60 text-rose-400">
+            Deficit: -{deficiency_count}
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
-            <CheckCircle2 className="w-3 h-3" />
-            OPTIMAL
+          <span className="text-[10px] font-medium font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+            Adequate
           </span>
         )}
       </div>
 
-      {/* Staff Counts Breakdown */}
-      <div className="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-lg bg-gray-950/60 border border-gray-800/60 text-center">
-        <div>
-          <div className="text-[10px] font-medium text-gray-400 uppercase flex items-center justify-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
-            Active
-          </div>
-          <div className={`text-base font-extrabold mt-0.5 ${is_lacking ? 'text-red-400' : 'text-emerald-400'}`}>
-            {active_staff} <span className="text-xs font-normal text-gray-500">/ {min_required_staff}</span>
-          </div>
+      {/* Headcount metrics */}
+      <div className="flex items-baseline justify-between my-2">
+        <div className="text-lg font-semibold font-mono text-zinc-100">
+          {active_staff}{' '}
+          <span className="text-xs font-normal text-zinc-500">/ {min_required_staff} FTE</span>
         </div>
-
-        <div>
-          <div className="text-[10px] font-medium text-gray-400 uppercase flex items-center justify-center gap-1">
-            <Clock className="w-2.5 h-2.5 text-amber-400" />
-            LOA
-          </div>
-          <div className="text-base font-bold text-amber-300 mt-0.5">
-            {loa_staff}
-          </div>
-        </div>
-
-        <div>
-          <div className="text-[10px] font-medium text-gray-400 uppercase flex items-center justify-center gap-1">
-            <Moon className="w-2.5 h-2.5 text-blue-400" />
-            Hiatus
-          </div>
-          <div className="text-base font-bold text-blue-300 mt-0.5">
-            {hiatus_staff}
-          </div>
+        <div className="text-[11px] font-mono text-zinc-400">
+          {percentActive}%
         </div>
       </div>
 
-      {/* Capacity Progress Bar */}
-      <div className="space-y-1">
-        <div className="flex justify-between text-[11px] text-gray-400">
-          <span>Active Staffing</span>
-          <span className="font-semibold text-gray-300">{percentActive}%</span>
-        </div>
-        <div className="w-full h-1.5 rounded-full bg-gray-800 overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all duration-300 ${
-              is_lacking ? 'bg-red-500' : active_staff === min_required_staff ? 'bg-amber-500' : 'bg-emerald-500'
-            }`}
-            style={{ width: `${percentActive}%` }}
-          />
-        </div>
+      {/* Progress Bar */}
+      <div className="w-full h-1 rounded-full bg-zinc-800 overflow-hidden mb-2.5">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${
+            is_lacking ? 'bg-rose-500' : percentActive === 100 ? 'bg-zinc-400' : 'bg-emerald-500'
+          }`}
+          style={{ width: `${percentActive}%` }}
+        />
       </div>
 
-      {is_lacking && (
-        <p className="mt-2 text-[11px] text-red-400/90 font-medium">
-          Requires at least {deficiency_count} more active staff member{deficiency_count > 1 ? 's' : ''} to meet requirement.
-        </p>
-      )}
+      {/* Breakdown footer */}
+      <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-1.5 border-t border-zinc-800/60">
+        <span>Active: <strong className="text-zinc-300 font-mono">{active_staff}</strong></span>
+        <span>LOA: <strong className="text-amber-400 font-mono">{loa_staff}</strong></span>
+        <span>Hiatus: <strong className="text-zinc-400 font-mono">{hiatus_staff}</strong></span>
+      </div>
     </div>
   );
 }

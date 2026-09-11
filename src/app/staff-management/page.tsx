@@ -6,19 +6,15 @@ import SkinAvatar from '@/components/SkinAvatar';
 import DepartmentCard from '@/components/DepartmentCard';
 import StaffModal from '@/components/StaffModal';
 import { 
-  Shield, 
+  Users, 
   UserPlus, 
-  AlertTriangle, 
   Search, 
   Calendar, 
   Clock, 
-  Moon, 
-  CheckCircle2, 
-  Filter, 
-  Edit3, 
-  Users,
-  ChevronRight,
-  Sparkles
+  AlertCircle,
+  Edit2,
+  CheckCircle2,
+  Filter
 } from 'lucide-react';
 
 export default function StaffManagementPage() {
@@ -66,14 +62,12 @@ export default function StaffManagementPage() {
   const handleSaveStaff = async (data: Partial<StaffMember>) => {
     try {
       if (editingStaffMember) {
-        // Update existing
         await fetch(`/api/staff/${editingStaffMember.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
         });
       } else {
-        // Create new
         await fetch('/api/staff', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -95,7 +89,6 @@ export default function StaffManagementPage() {
     }
   };
 
-  // Quick Status change
   const handleQuickStatus = async (id: string, newStatus: StaffStatus, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
@@ -116,12 +109,10 @@ export default function StaffManagementPage() {
     }
   };
 
-  // Lacking departments count
   const lackingDepartments = useMemo(() => {
     return departments.filter((d) => d.is_lacking);
   }, [departments]);
 
-  // Filtered staff list
   const filteredStaff = useMemo(() => {
     return staff.filter((s) => {
       if (selectedDepartment !== 'all') {
@@ -146,19 +137,15 @@ export default function StaffManagementPage() {
   }, [staff, selectedDepartment, statusFilter, searchQuery]);
 
   return (
-    <div className="space-y-8">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 animate-fade-in">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
-            <Shield className="w-4 h-4" />
-            Staff Roster & Department Supervision
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            Staff Management System
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
+            Workforce Capacity & Staff Roster
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Monitor active staff, track Hiatus & Leave of Absence (LOA), and supervise understaffed departments.
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Monitor department staffing quotas, track Leaves of Absence (LOA), and maintain coverage.
           </p>
         </div>
 
@@ -168,57 +155,51 @@ export default function StaffManagementPage() {
             setEditingStaffMember(null);
             setIsStaffModalOpen(true);
           }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all self-start sm:self-auto"
+          className="px-3 py-1.5 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 transition-colors flex items-center gap-1.5 shadow-sm self-start sm:self-auto"
         >
-          <UserPlus className="w-4 h-4" />
-          Add Staff Member
+          <UserPlus className="w-3.5 h-3.5" />
+          <span>Add Team Member</span>
         </button>
       </div>
 
-      {/* Understaffed / Lacking Alert Banner */}
+      {/* Capacity Deficit Warning Callout */}
       {lackingDepartments.length > 0 && (
-        <div className="p-4 rounded-2xl bg-red-950/60 border border-red-500/50 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-red-900/60 text-red-400 border border-red-500/40">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
+        <div className="p-3.5 rounded-lg bg-zinc-900/60 border border-zinc-800 text-xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
             <div>
-              <h3 className="text-sm font-bold text-red-200">
-                Staffing Alert: {lackingDepartments.length} Department{lackingDepartments.length > 1 ? 's are' : ' is'} Lacking Active Staff!
-              </h3>
-              <p className="text-xs text-red-300/80 mt-0.5">
-                {lackingDepartments.map((d) => `${d.name} (need +${d.deficiency_count})`).join(', ')}.
-                Consider hiring or reviewing members currently on LOA/Hiatus.
-              </p>
+              <span className="font-semibold text-zinc-200">
+                Staffing Deficit Detected ({lackingDepartments.length} Department{lackingDepartments.length > 1 ? 's' : ''}):
+              </span>{' '}
+              <span className="text-zinc-400">
+                {lackingDepartments.map((d) => `${d.name} (-${d.deficiency_count})`).join(', ')}.
+              </span>
             </div>
           </div>
+          <span className="text-[11px] font-mono text-zinc-500 hidden sm:inline">
+            Action Recommended
+          </span>
         </div>
       )}
 
-      {/* Department Health Cards Grid */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              Department Health & Staffing Levels
-            </h2>
-            <span className="text-xs text-gray-500">
-              (Click a card to filter staff roster)
-            </span>
-          </div>
-
+      {/* Department Capacity Grid */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-medium uppercase tracking-wider text-zinc-400 text-[11px]">
+            Department Headcount Capacity
+          </span>
           {selectedDepartment !== 'all' && (
             <button
               type="button"
               onClick={() => setSelectedDepartment('all')}
-              className="text-xs text-emerald-400 hover:underline font-semibold"
+              className="text-zinc-400 hover:text-zinc-200 text-xs"
             >
-              Reset to All Departments
+              Clear Department Filter
             </button>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
           {departments.map((dept) => (
             <DepartmentCard
               key={dept.id}
@@ -236,46 +217,34 @@ export default function StaffManagementPage() {
         </div>
       </div>
 
-      {/* Staff Roster Section */}
-      <div className="space-y-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">
-              Staff Roster & Leave Tracking
-            </h2>
-            <p className="text-xs text-gray-400">
-              Showing {filteredStaff.length} of {staff.length} staff members
-            </p>
+      {/* Roster Controls */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-2.5 p-2 bg-zinc-900/40 border border-zinc-800 rounded-lg text-xs">
+          <div className="relative flex-1 w-full">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search staff by IGN, Discord, or role..."
+              className="w-full pl-8 pr-3 py-1.5 rounded-md bg-zinc-950 border border-zinc-800/80 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 placeholder-zinc-600"
+            />
           </div>
 
-          {/* Search & Filter Controls */}
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-            {/* Search */}
-            <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search staff IGN or Discord..."
-                className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-gray-950 border border-gray-800 text-white text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex items-center gap-1 bg-gray-950 border border-gray-800 p-0.5 rounded-xl">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center p-0.5 bg-zinc-950 border border-zinc-800/80 rounded-md">
               {['all', 'Active', 'LOA', 'Hiatus'].map((st) => (
                 <button
                   key={st}
                   type="button"
                   onClick={() => setStatusFilter(st)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
                     statusFilter === st
-                      ? 'bg-emerald-600 text-white'
-                      : 'text-gray-400 hover:text-white'
+                      ? 'bg-zinc-800 text-zinc-100'
+                      : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  {st === 'all' ? 'All Status' : st}
+                  {st === 'all' ? 'All Statuses' : st}
                 </button>
               ))}
             </div>
@@ -283,136 +252,171 @@ export default function StaffManagementPage() {
         </div>
 
         {/* Staff Table */}
-        <div className="bg-gray-900/70 border border-gray-800 rounded-2xl overflow-hidden shadow-xl">
-          {loading ? (
-            <div className="py-16 text-center text-sm text-gray-400">
-              Loading staff roster...
-            </div>
-          ) : filteredStaff.length === 0 ? (
-            <div className="py-16 text-center text-sm text-gray-400">
-              No staff members found matching this filter.
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-800/60">
-              {filteredStaff.map((member) => {
-                const isActive = member.status === 'Active';
-                const isLoa = member.status === 'LOA';
-                const isHiatus = member.status === 'Hiatus';
+        <div className="border border-zinc-800 rounded-lg overflow-hidden bg-zinc-900/30">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-zinc-800 bg-zinc-950/80 text-[11px] uppercase tracking-wider text-zinc-400 font-medium">
+                  <th className="py-2.5 px-4">Member</th>
+                  <th className="py-2.5 px-3">Title</th>
+                  <th className="py-2.5 px-3">Department</th>
+                  <th className="py-2.5 px-3">Availability Status</th>
+                  <th className="py-2.5 px-3">Leave Schedule / Reason</th>
+                  <th className="py-2.5 px-4 text-right">Duty Override</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800/60">
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-zinc-500">
+                      Loading workforce roster...
+                    </td>
+                  </tr>
+                ) : filteredStaff.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-zinc-500">
+                      No staff members match the active filters.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStaff.map((member) => {
+                    const isActive = member.status === 'Active';
+                    const isLoa = member.status === 'LOA';
+                    const isHiatus = member.status === 'Hiatus';
 
-                return (
-                  <div
-                    key={member.id}
-                    onClick={() => {
-                      setEditingStaffMember(member);
-                      setIsStaffModalOpen(true);
-                    }}
-                    className="px-6 py-4 hover:bg-gray-800/40 transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
-                  >
-                    {/* Left: Avatar & Identity */}
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <SkinAvatar ign={member.ign} size={44} />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-base font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">
-                            {member.ign}
-                          </span>
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-950 text-gray-300 border border-gray-800">
-                            {member.role}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
-                          <span>{member.discord_tag || 'No Discord'}</span>
-                          <span>•</span>
-                          <span className="text-emerald-400/90 font-medium">{member.department}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Middle: LOA / Hiatus Info */}
-                    <div className="sm:max-w-xs flex-1">
-                      {isLoa ? (
-                        <div className="p-2 rounded-lg bg-amber-950/40 border border-amber-500/30 text-xs text-amber-300 space-y-0.5">
-                          <div className="flex items-center gap-1 font-bold">
-                            <Clock className="w-3 h-3 text-amber-400" />
-                            On LOA {member.loa_return_date ? `until ${new Date(member.loa_return_date).toLocaleDateString()}` : ''}
+                    return (
+                      <tr
+                        key={member.id}
+                        onClick={() => {
+                          setEditingStaffMember(member);
+                          setIsStaffModalOpen(true);
+                        }}
+                        className="hover:bg-zinc-900/70 transition-colors cursor-pointer group"
+                      >
+                        {/* Member */}
+                        <td className="py-2.5 px-4">
+                          <div className="flex items-center gap-2.5">
+                            <SkinAvatar ign={member.ign} size={28} />
+                            <div>
+                              <div className="font-semibold text-zinc-200 group-hover:text-white">
+                                {member.ign}
+                              </div>
+                              <div className="text-[10px] text-zinc-500 font-mono">
+                                {member.discord_tag || '—'}
+                              </div>
+                            </div>
                           </div>
-                          {member.loa_reason && (
-                            <p className="text-[11px] text-amber-200/70 truncate">
-                              &quot;{member.loa_reason}&quot;
-                            </p>
+                        </td>
+
+                        {/* Title */}
+                        <td className="py-2.5 px-3 text-zinc-300">
+                          {member.role}
+                        </td>
+
+                        {/* Department */}
+                        <td className="py-2.5 px-3 text-zinc-400">
+                          {member.department}
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-2.5 px-3">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                              isActive
+                                ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
+                                : isLoa
+                                ? 'bg-amber-950/60 text-amber-400 border border-amber-800/60'
+                                : 'bg-zinc-800 text-zinc-300 border border-zinc-700'
+                            }`}
+                          >
+                            <span
+                              className={`w-1 h-1 rounded-full ${
+                                isActive ? 'bg-emerald-400' : isLoa ? 'bg-amber-400' : 'bg-zinc-400'
+                              }`}
+                            />
+                            {member.status}
+                          </span>
+                        </td>
+
+                        {/* Leave Schedule / Reason */}
+                        <td className="py-2.5 px-3 max-w-xs text-zinc-400 text-[11px]">
+                          {isLoa || isHiatus ? (
+                            <div>
+                              <span className="text-zinc-300 font-mono">
+                                {member.loa_return_date ? `Until ${new Date(member.loa_return_date).toLocaleDateString()}` : 'Indefinite'}
+                              </span>
+                              {member.loa_reason && (
+                                <p className="text-zinc-500 truncate text-[10px]">
+                                  {member.loa_reason}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-zinc-600">—</span>
                           )}
-                        </div>
-                      ) : isHiatus ? (
-                        <div className="p-2 rounded-lg bg-blue-950/40 border border-blue-500/30 text-xs text-blue-300 space-y-0.5">
-                          <div className="flex items-center gap-1 font-bold">
-                            <Moon className="w-3 h-3 text-blue-400" />
-                            On Hiatus {member.loa_return_date ? `until ${new Date(member.loa_return_date).toLocaleDateString()}` : ''}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-2.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              type="button"
+                              onClick={(e) => handleQuickStatus(member.id, 'Active', e)}
+                              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                                isActive
+                                  ? 'bg-zinc-800 text-zinc-200'
+                                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'
+                              }`}
+                            >
+                              Active
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => handleQuickStatus(member.id, 'LOA', e)}
+                              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                                isLoa
+                                  ? 'bg-amber-950 text-amber-300 border border-amber-800'
+                                  : 'text-zinc-500 hover:text-amber-300 hover:bg-zinc-800'
+                              }`}
+                            >
+                              LOA
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => handleQuickStatus(member.id, 'Hiatus', e)}
+                              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
+                                isHiatus
+                                  ? 'bg-zinc-800 text-zinc-200'
+                                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800'
+                              }`}
+                            >
+                              Hiatus
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingStaffMember(member);
+                                setIsStaffModalOpen(true);
+                              }}
+                              className="p-1 text-zinc-500 hover:text-zinc-200 ml-1"
+                              title="Edit team member"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
-                          {member.loa_reason && (
-                            <p className="text-[11px] text-blue-200/70 truncate">
-                              &quot;{member.loa_reason}&quot;
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-emerald-400/80 font-medium flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          Actively on duty
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Right: Status Toggle & Edit Action */}
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-                      <button
-                        type="button"
-                        onClick={(e) => handleQuickStatus(member.id, 'Active', e)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                          isActive
-                            ? 'bg-emerald-600 text-white shadow-sm'
-                            : 'bg-gray-950 border border-gray-800 text-gray-400 hover:text-emerald-400'
-                        }`}
-                      >
-                        Active
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleQuickStatus(member.id, 'LOA', e)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                          isLoa
-                            ? 'bg-amber-600 text-white shadow-sm'
-                            : 'bg-gray-950 border border-gray-800 text-gray-400 hover:text-amber-400'
-                        }`}
-                      >
-                        LOA
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={(e) => handleQuickStatus(member.id, 'Hiatus', e)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                          isHiatus
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-gray-950 border border-gray-800 text-gray-400 hover:text-blue-400'
-                        }`}
-                      >
-                        Hiatus
-                      </button>
-
-                      <div className="p-1.5 text-gray-500 group-hover:text-emerald-400 transition-colors ml-1">
-                        <Edit3 className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* Add / Edit Staff Modal */}
+      {/* Staff Modal */}
       <StaffModal
         staffMember={editingStaffMember}
         isOpen={isStaffModalOpen}

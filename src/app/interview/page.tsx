@@ -7,38 +7,35 @@ import StarRating from '@/components/StarRating';
 import SkinAvatar from '@/components/SkinAvatar';
 import { 
   ClipboardCheck, 
-  Send, 
-  CheckCircle2, 
   ArrowRight, 
-  Tag, 
-  User, 
-  FileText, 
-  RotateCcw,
-  Sparkles,
-  ExternalLink
+  CheckCircle2, 
+  RotateCcw, 
+  ExternalLink,
+  Tag,
+  FileText,
+  User,
+  Check
 } from 'lucide-react';
 
-const COMMON_TAGS = [
-  'Builder',
-  'Redstone',
-  'PvP',
-  'Good Mic',
-  'Active Daily',
-  'Mature',
-  'Chill',
-  'Content Creator',
-  'Casual',
-  'Rule Warning',
+const COMPETENCY_TAGS = [
+  'Technical Redstone',
+  'Advanced Architecture',
+  'Verified Audio/Mic',
+  'High Availability',
+  'Server Moderation',
+  'PvP / Combat',
+  'Community Lore',
+  'Policy Compliance Risk',
 ];
 
 export default function InterviewPage() {
   const { staffName, setStaffName, isOwnerOrDev } = useRole();
 
   const [ign, setIgn] = useState('');
-  const [rating, setRating] = useState<number>(5);
+  const [rating, setRating] = useState<number>(4);
   const [notes, setNotes] = useState('');
   const [interviewerIgn, setInterviewerIgn] = useState(staffName || 'Staff');
-  const [selectedTags, setSelectedTags] = useState<string[]>(['Good Mic']);
+  const [selectedTags, setSelectedTags] = useState<string[]>(['Verified Audio/Mic']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedCandidate, setSubmittedCandidate] = useState<any | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -51,9 +48,9 @@ export default function InterviewPage() {
 
   const handleResetForm = () => {
     setIgn('');
-    setRating(5);
+    setRating(4);
     setNotes('');
-    setSelectedTags(['Good Mic']);
+    setSelectedTags(['Verified Audio/Mic']);
     setSubmittedCandidate(null);
     setErrorMsg('');
   };
@@ -63,13 +60,12 @@ export default function InterviewPage() {
     setErrorMsg('');
 
     if (!ign.trim()) {
-      setErrorMsg('Please enter the candidate\'s Minecraft In-Game Name (IGN).');
+      setErrorMsg('Candidate In-Game Name (IGN) is required.');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Save current interviewer name to context
       if (interviewerIgn.trim()) {
         setStaffName(interviewerIgn.trim());
       }
@@ -88,190 +84,175 @@ export default function InterviewPage() {
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit interview evaluation');
+        throw new Error(data.error || 'Failed to submit candidate evaluation');
       }
 
       setSubmittedCandidate(data.candidate);
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error submitting interview evaluation. Please try again.');
+      setErrorMsg(err.message || 'Error recording evaluation. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-3xl mx-auto py-4">
-      {/* Top Banner & Navigation */}
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-2xl mx-auto py-4 space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-1">
-            <ClipboardCheck className="w-4 h-4" />
-            Candidate Evaluation Form
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            SMP Interview Portal
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-100">
+            Candidate Evaluation Scorecard
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Score the applicant from 1 to 5 stars, record your interview notes, and submit for final SMP admission review.
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Record standardized interview metrics, observations, and admission score.
           </p>
         </div>
 
         {isOwnerOrDev && (
           <Link
             href="/"
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-gray-900 border border-gray-800 text-gray-300 hover:text-white hover:border-gray-700 transition-colors"
+            className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium transition-colors"
           >
-            Review DBMS
+            <span>Candidate Pipeline</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         )}
       </div>
 
-      {/* Success Modal / Card after Submission */}
+      {/* Success View */}
       {submittedCandidate ? (
-        <div className="p-8 rounded-2xl bg-gray-900/90 border border-emerald-500/40 shadow-2xl text-center animate-fadeIn space-y-6">
-          <div className="w-16 h-16 rounded-full bg-emerald-950/80 border border-emerald-500/50 flex items-center justify-center mx-auto text-emerald-400 shadow-lg shadow-emerald-500/20">
-            <CheckCircle2 className="w-9 h-9" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl font-extrabold text-white tracking-tight">
-              Interview Evaluation Submitted!
-            </h2>
-            <p className="text-sm text-gray-400 max-w-md mx-auto">
-              <span className="text-emerald-400 font-bold">{submittedCandidate.ign}</span> has been added to the database with a{' '}
-              <span className="text-amber-400 font-bold">{submittedCandidate.rating} Star</span> rating.
-            </p>
-          </div>
-
-          {/* Candidate Card Summary */}
-          <div className="p-4 rounded-xl bg-gray-950/80 border border-gray-800/80 max-w-sm mx-auto flex items-center gap-4 text-left">
-            <SkinAvatar ign={submittedCandidate.ign} size={52} />
-            <div className="flex-1 min-w-0">
-              <div className="text-base font-bold text-white truncate">
-                {submittedCandidate.ign}
-              </div>
-              <div className="flex items-center gap-1 mt-0.5">
-                <StarRating value={submittedCandidate.rating} readOnly size="sm" showLabel={false} />
-                <span className="text-xs text-amber-400 font-bold ml-1">{submittedCandidate.rating}/5</span>
-              </div>
-              <div className="text-xs text-gray-500 truncate mt-1">
-                Status: <span className="text-amber-400 font-medium uppercase text-[10px]">Pending Review</span>
-              </div>
+        <div className="p-6 rounded-xl bg-zinc-900/80 border border-zinc-800 shadow-xl space-y-5 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-emerald-950/60 border border-emerald-500/40 flex items-center justify-center text-emerald-400 flex-shrink-0">
+              <Check className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-100">
+                Evaluation Submitted Successfully
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Record for <span className="font-mono text-zinc-200 font-medium">{submittedCandidate.ign}</span> has been indexed with a score of <span className="text-amber-400 font-semibold">{submittedCandidate.rating}.0 / 5.0</span>.
+              </p>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="p-3.5 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <SkinAvatar ign={submittedCandidate.ign} size={36} />
+              <div>
+                <div className="text-xs font-semibold text-zinc-200">
+                  {submittedCandidate.ign}
+                </div>
+                <div className="text-[11px] text-zinc-400">
+                  Evaluated by {submittedCandidate.interviewer_ign}
+                </div>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <div className="text-xs font-mono font-semibold text-amber-400">
+                {submittedCandidate.rating}.0 ★
+              </div>
+              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-950/50 border border-amber-800/60 text-amber-400">
+                Pending Review
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 pt-2">
             <button
               type="button"
               onClick={handleResetForm}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-all"
+              className="flex-1 py-2 px-3 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
             >
-              <RotateCcw className="w-4 h-4" />
-              Interview Next Candidate
+              <RotateCcw className="w-3.5 h-3.5" />
+              Evaluate Next Candidate
             </button>
 
             <Link
               href="/"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors border border-gray-700"
+              className="py-2 px-3 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-850 text-zinc-300 border border-zinc-800 transition-colors flex items-center justify-center gap-1.5"
             >
-              Go to Candidate Review
-              <ExternalLink className="w-4 h-4" />
+              Pipeline Overview
+              <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
       ) : (
-        /* The Core Interview Form */
-        <form onSubmit={handleSubmit} className="bg-gray-900/70 border border-gray-800/90 rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-sm space-y-6">
+        /* The Form */
+        <form onSubmit={handleSubmit} className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-5 sm:p-6 shadow-sm space-y-5">
           {errorMsg && (
-            <div className="p-4 rounded-xl bg-red-950/80 border border-red-500/40 text-red-300 text-xs font-semibold">
+            <div className="p-2.5 rounded-md bg-rose-950/50 border border-rose-800/60 text-rose-300 text-xs">
               {errorMsg}
             </div>
           )}
 
-          {/* 1. Minecraft In-Game Name (IGN) with Live Skin Preview */}
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">
-              Minecraft In-Game Name (IGN) <span className="text-red-400">*</span>
+          {/* Section 1: Candidate Identification */}
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+              Candidate In-Game Name (IGN) <span className="text-rose-400">*</span>
             </label>
-            <div className="flex items-center gap-3">
-              <SkinAvatar ign={ign || 'Steve'} size={52} />
-              <div className="flex-1">
-                <input
-                  type="text"
-                  required
-                  autoFocus
-                  value={ign}
-                  onChange={(e) => setIgn(e.target.value)}
-                  placeholder="e.g. Dream, Grian, MumboJumbo..."
-                  className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white text-base font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 placeholder-gray-600 transition-all"
-                />
-                <span className="text-[11px] text-gray-500 mt-1 block">
-                  Live skin head updates as you type the exact player IGN.
-                </span>
-              </div>
+            <div className="flex items-center gap-2.5">
+              <SkinAvatar ign={ign || 'User'} size={38} />
+              <input
+                type="text"
+                required
+                autoFocus
+                value={ign}
+                onChange={(e) => setIgn(e.target.value)}
+                placeholder="e.g. ApplicantUsername"
+                className="w-full px-3 py-2 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 placeholder-zinc-600 font-medium"
+              />
             </div>
           </div>
 
-          {/* 2. 1 to 5 Star Rating */}
-          <div className="p-5 rounded-2xl bg-gray-950/60 border border-gray-800/80 space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-300">
-                Interview Rating (1 to 5 Stars) <span className="text-red-400">*</span>
-              </label>
-              <span className="text-xs font-mono text-amber-400 font-bold">
-                Selected: {rating} / 5 Stars
-              </span>
-            </div>
+          {/* Section 2: Scorecard Rating (1 to 5 Stars) */}
+          <div className="p-4 rounded-lg bg-zinc-950 border border-zinc-800/80 space-y-2">
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+              Evaluation Score (1.0 to 5.0) <span className="text-rose-400">*</span>
+            </label>
             <StarRating
               value={rating}
               onChange={setRating}
-              size="lg"
+              size="md"
               showLabel={true}
             />
           </div>
 
-          {/* 3. Interview Notes & Observations */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-300">
-                Interview Notes & Observations
-              </label>
-              <span className="text-[11px] text-gray-500">
-                What did they say during the call?
-              </span>
-            </div>
+          {/* Section 3: Assessment Notes */}
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+              Assessment Notes & Interview Log
+            </label>
             <textarea
-              rows={5}
+              rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="e.g. Very polite and mature voice. Has 5 years of survival experience. Specializes in medieval builds and automatic sorting systems. Read all rules and has zero warnings on previous servers."
-              className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 placeholder-gray-600 transition-all"
+              placeholder="Detail candidate's responses, previous server experience, collaboration maturity, playstyle, and technical capabilities..."
+              className="w-full px-3 py-2 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 focus:border-zinc-400 placeholder-zinc-600 leading-relaxed"
             />
           </div>
 
-          {/* 4. Quick Vibe Tags (One-click toggles) */}
-          <div>
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">
-              <Tag className="w-3.5 h-3.5" />
-              Quick Applicant Badges
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {COMMON_TAGS.map((tag) => {
+          {/* Section 4: Competencies & Tags */}
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+              Demonstrated Competencies
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {COMPETENCY_TAGS.map((tag) => {
                 const active = selectedTags.includes(tag);
-                const isWarning = tag.includes('Warning') || tag.includes('Toxic');
+                const isRisk = tag.includes('Risk');
                 return (
                   <button
                     key={tag}
                     type="button"
                     onClick={() => toggleTag(tag)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors border ${
                       active
-                        ? isWarning
-                          ? 'bg-red-950 text-red-300 border border-red-500/50 shadow-sm'
-                          : 'bg-emerald-950/90 text-emerald-300 border border-emerald-500/50 shadow-sm'
-                        : 'bg-gray-950/60 text-gray-400 border border-gray-800/80 hover:border-gray-700 hover:text-gray-300'
+                        ? isRisk
+                          ? 'bg-rose-950/60 text-rose-300 border-rose-800/80'
+                          : 'bg-zinc-800 text-zinc-100 border-zinc-600'
+                        : 'bg-zinc-950 text-zinc-400 border-zinc-800/80 hover:border-zinc-700 hover:text-zinc-300'
                     }`}
                   >
                     {active ? '✓ ' : '+ '}
@@ -282,41 +263,34 @@ export default function InterviewPage() {
             </div>
           </div>
 
-          {/* 5. Interviewer Name (For accountability & staff metrics) */}
-          <div className="pt-2 border-t border-gray-800/60">
-            <div className="flex items-center gap-3">
-              <div className="w-1/2">
-                <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
-                  Conducted By (Interviewer IGN)
-                </label>
-                <input
-                  type="text"
-                  value={interviewerIgn}
-                  onChange={(e) => setInterviewerIgn(e.target.value)}
-                  placeholder="Your Staff IGN"
-                  className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-gray-200 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                />
-              </div>
+          {/* Section 5: Evaluator Information */}
+          <div className="pt-2 border-t border-zinc-800 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500">Evaluator:</span>
+              <input
+                type="text"
+                value={interviewerIgn}
+                onChange={(e) => setInterviewerIgn(e.target.value)}
+                className="px-2 py-1 rounded bg-zinc-950 border border-zinc-800 text-zinc-300 font-mono text-[11px] focus:outline-none focus:ring-1 focus:ring-zinc-500 w-36"
+              />
             </div>
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-4">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-xl font-extrabold text-base bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white shadow-xl shadow-emerald-600/30 hover:shadow-emerald-600/50 transition-all duration-200 disabled:opacity-50 cursor-pointer"
-            >
-              {isSubmitting ? (
-                <span>Submitting Evaluation...</span>
-              ) : (
-                <>
-                  <Send className="w-5 h-5" />
-                  <span>Submit Interview Evaluation</span>
-                </>
-              )}
-            </button>
-          </div>
+          {/* Action */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-2.5 px-4 rounded-md font-medium text-xs bg-zinc-100 hover:bg-white text-zinc-950 transition-colors flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
+          >
+            {isSubmitting ? (
+              <span>Submitting Scorecard...</span>
+            ) : (
+              <>
+                <ClipboardCheck className="w-3.5 h-3.5" />
+                <span>Submit Candidate Scorecard</span>
+              </>
+            )}
+          </button>
         </form>
       )}
     </div>

@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { StaffMember, StaffRole, StaffStatus } from '@/lib/types';
 import SkinAvatar from './SkinAvatar';
-import { X, Save, UserPlus, Shield, Trash2, Calendar, FileText } from 'lucide-react';
-import { DEPARTMENTS_CONFIG } from '@/lib/db';
+import { X, Trash2 } from 'lucide-react';
 
 interface StaffModalProps {
   staffMember: StaffMember | null;
@@ -78,7 +77,7 @@ export default function StaffModal({
 
   const handleDelete = async () => {
     if (!staffMember || !onDelete) return;
-    if (!confirm(`Are you sure you want to remove ${staffMember.ign} from the staff roster?`)) return;
+    if (!confirm(`Remove ${staffMember.ign} from the active staff roster?`)) return;
     setIsDeleting(true);
     try {
       await onDelete(staffMember.id);
@@ -89,71 +88,68 @@ export default function StaffModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-lg bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col text-xs">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-950/60">
-          <div className="flex items-center gap-3">
-            <SkinAvatar ign={ign || 'Steve'} size={40} />
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-800 bg-zinc-950/60">
+          <div className="flex items-center gap-2.5">
+            <SkinAvatar ign={ign || 'User'} size={32} />
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">
-                {isEditing ? `Edit Staff Member (${staffMember.ign})` : 'Add New Staff Member'}
+              <h2 className="font-semibold text-sm text-zinc-100">
+                {isEditing ? `Edit Team Member (${staffMember.ign})` : 'New Staff Member'}
               </h2>
-              <p className="text-xs text-gray-400">
-                Staff Roster & Leave of Absence (LOA) Tracker
+              <p className="text-[11px] text-zinc-500">
+                Workforce profile & availability management
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+            className="p-1 text-zinc-400 hover:text-zinc-200"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
-          {/* Minecraft IGN */}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-3.5 overflow-y-auto max-h-[75vh]">
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Minecraft In-Game Name (IGN) <span className="text-red-400">*</span>
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1">
+              Account Identifier (IGN) <span className="text-rose-400">*</span>
             </label>
             <input
               type="text"
               required
               value={ign}
               onChange={(e) => setIgn(e.target.value)}
-              placeholder="e.g. BlockDoctor"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 placeholder-gray-600"
+              placeholder="Minecraft username"
+              className="w-full px-3 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400"
             />
           </div>
 
-          {/* Discord Tag */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
-              Discord Handle / Tag
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1">
+              Discord Handle
             </label>
             <input
               type="text"
               value={discordTag}
               onChange={(e) => setDiscordTag(e.target.value)}
-              placeholder="e.g. blockdoc#0001 or @blockdoc"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 placeholder-gray-600"
+              placeholder="e.g. username#0000 or @username"
+              className="w-full px-3 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 font-mono"
             />
           </div>
 
-          {/* Role & Department */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
-                Staff Role
+              <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1">
+                Role Title
               </label>
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value as StaffRole)}
-                className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                className="w-full px-2.5 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400"
               >
                 <option value="Interviewer">Interviewer</option>
                 <option value="Moderator">Moderator</option>
@@ -165,13 +161,13 @@ export default function StaffModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">
+              <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1">
                 Department
               </label>
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                className="w-full px-2.5 py-1.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400"
               >
                 <option value="Recruitment & Interviews">Recruitment & Interviews</option>
                 <option value="Server Moderation">Server Moderation</option>
@@ -183,80 +179,62 @@ export default function StaffModal({
             </div>
           </div>
 
-          {/* Status (Active, LOA, Hiatus, Inactive) */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-              Staff Availability Status
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1.5">
+              Availability Status
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { id: 'Active', label: 'Active', color: 'text-emerald-400 border-emerald-500/40 bg-emerald-950/40' },
-                { id: 'LOA', label: 'LOA', color: 'text-amber-400 border-amber-500/40 bg-amber-950/40' },
-                { id: 'Hiatus', label: 'Hiatus', color: 'text-blue-400 border-blue-500/40 bg-blue-950/40' },
-                { id: 'Inactive', label: 'Inactive', color: 'text-gray-400 border-gray-700 bg-gray-900' },
-              ].map((s) => (
+            <div className="grid grid-cols-4 gap-1">
+              {(['Active', 'LOA', 'Hiatus', 'Inactive'] as StaffStatus[]).map((s) => (
                 <button
-                  key={s.id}
+                  key={s}
                   type="button"
-                  onClick={() => setStatus(s.id as StaffStatus)}
-                  className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all text-center ${
-                    status === s.id
-                      ? `${s.color} ring-2 ring-emerald-500 shadow-md`
-                      : 'border-gray-800 text-gray-500 hover:text-gray-300 bg-gray-950'
+                  onClick={() => setStatus(s)}
+                  className={`py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                    status === s
+                      ? 'bg-zinc-800 text-zinc-100 border-zinc-600'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  {s.label}
+                  {s}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Conditional LOA / Hiatus Details */}
           {(status === 'LOA' || status === 'Hiatus') && (
-            <div className="p-3.5 rounded-xl bg-gray-950/80 border border-amber-500/30 space-y-3 animate-fadeIn">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-                <Calendar className="w-3.5 h-3.5" />
-                {status === 'LOA' ? 'Leave of Absence Details' : 'Hiatus Details'}
-              </div>
-
+            <div className="p-3 rounded-md bg-zinc-950 border border-zinc-800 space-y-2 animate-fade-in">
               <div>
-                <label className="block text-[11px] font-semibold text-gray-400 mb-1">
-                  Expected Return Date
-                </label>
+                <label className="block text-[10px] text-zinc-400 mb-0.5">Return Date</label>
                 <input
                   type="date"
                   value={loaReturnDate}
                   onChange={(e) => setLoaReturnDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-100 text-xs"
                 />
               </div>
-
               <div>
-                <label className="block text-[11px] font-semibold text-gray-400 mb-1">
-                  Reason / Notes
-                </label>
+                <label className="block text-[10px] text-zinc-400 mb-0.5">Absence Documentation</label>
                 <textarea
                   rows={2}
                   value={loaReason}
                   onChange={(e) => setLoaReason(e.target.value)}
-                  placeholder="e.g. College midterm exams, traveling, temporary PC hardware issue..."
-                  className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-800 text-white text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/50 placeholder-gray-600"
+                  placeholder="Reason for leave of absence..."
+                  className="w-full px-2.5 py-1 rounded bg-zinc-900 border border-zinc-800 text-zinc-100 text-xs placeholder-zinc-600"
                 />
               </div>
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+          <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
             {isEditing && onDelete ? (
               <button
                 type="button"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-950/50"
+                className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                Remove
+                <span>Remove</span>
               </button>
             ) : <div />}
 
@@ -264,17 +242,16 @@ export default function StaffModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white"
+                className="px-3 py-1.5 rounded-md text-xs font-medium text-zinc-400 hover:text-zinc-200"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSaving}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30"
+                className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 transition-colors shadow-sm"
               >
-                <Save className="w-3.5 h-3.5" />
-                {isSaving ? 'Saving...' : isEditing ? 'Save Staff' : 'Add Staff Member'}
+                {isSaving ? 'Saving...' : isEditing ? 'Save Member' : 'Add Member'}
               </button>
             </div>
           </div>

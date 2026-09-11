@@ -14,24 +14,24 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   // Loading state while checking localStorage session
   if (isLoadingAuth) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#090d16] text-gray-400 space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 animate-pulse shadow-lg shadow-emerald-600/20">
-          <Shield className="w-6 h-6" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-zinc-950 text-zinc-400 space-y-3">
+        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 animate-pulse">
+          <Shield className="w-4 h-4" />
         </div>
-        <p className="text-xs font-semibold tracking-wider uppercase text-gray-500">
-          Authenticating KDOS SMP Session...
+        <p className="text-[11px] font-mono uppercase text-zinc-500 tracking-wider">
+          Initializing Session...
         </p>
       </div>
     );
   }
 
-  // Not authenticated: Render Login Gatekeeper
+  // Not authenticated: Render Corporate SSO Portal
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col justify-between bg-[#090d16]">
-        <header className="py-4 border-b border-gray-900 bg-gray-950/60 text-center">
-          <span className="text-xs font-bold uppercase tracking-widest text-emerald-400">
-            KDOS SMP • Security Gateway
+      <div className="min-h-screen flex flex-col justify-between bg-zinc-950 text-zinc-100">
+        <header className="py-3 border-b border-zinc-900 text-center">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+            KDOS Operations • Enterprise Authentication
           </span>
         </header>
 
@@ -39,8 +39,8 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
           <LoginScreen />
         </main>
 
-        <footer className="py-4 border-t border-gray-900 bg-gray-950/60 text-center text-xs text-gray-500">
-          KDOS SMP Management System • Next.js & Vercel
+        <footer className="py-3 border-t border-zinc-900 text-center text-[11px] text-zinc-600">
+          KDOS Operations System • Production SMP
         </footer>
       </div>
     );
@@ -48,13 +48,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
 
   // Authenticated: Render full application with Navbar and tools
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
       <Navbar onOpenWhitelist={() => setWhitelistModalOpen(true)} />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
         {children}
       </main>
-      <footer className="border-t border-gray-900 bg-gray-950/60 py-4 text-center text-xs text-gray-500">
-        KDOS SMP Management System • Next.js & Vercel • Staff & Candidate Database
+      <footer className="border-t border-zinc-900 py-3.5 text-center text-xs text-zinc-500">
+        KDOS Operations System • Candidate Management & Workforce Capacity
       </footer>
 
       {/* Global Whitelist Modal */}

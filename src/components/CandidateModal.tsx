@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Candidate, CandidateStatus } from '@/lib/types';
 import SkinAvatar from './SkinAvatar';
 import StarRating from './StarRating';
-import { X, Check, XCircle, Clock, Trash2, Copy, CheckCheck, Save, ExternalLink } from 'lucide-react';
+import { X, Copy, Check, Trash2, CheckCheck } from 'lucide-react';
 
 interface CandidateModalProps {
   candidate: Candidate | null;
@@ -45,9 +45,7 @@ export default function CandidateModal({
   };
 
   const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to permanently delete ${candidate.ign}'s interview record?`)) {
-      return;
-    }
+    if (!confirm(`Permanently delete evaluation record for ${candidate.ign}?`)) return;
     setIsDeleting(true);
     try {
       await onDelete(candidate.id);
@@ -64,127 +62,104 @@ export default function CandidateModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="w-full max-w-2xl bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col text-xs">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800 bg-gray-950/60">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-800 bg-zinc-950/60">
           <div className="flex items-center gap-3">
-            <SkinAvatar ign={candidate.ign} size={48} />
+            <SkinAvatar ign={candidate.ign} size={36} />
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-extrabold text-white tracking-tight">
-                  {candidate.ign}
-                </h2>
+                <span className="font-semibold text-sm text-zinc-100">{candidate.ign}</span>
                 <button
                   type="button"
                   onClick={copyWhitelistCmd}
-                  className="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 flex items-center gap-1 border border-gray-700"
-                  title="Copy /whitelist add command"
+                  className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-zinc-750 flex items-center gap-1 transition-colors"
                 >
                   {copiedCmd ? <CheckCheck className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                   /whitelist add
                 </button>
               </div>
-              <p className="text-xs text-gray-400">
-                Interviewed by <span className="text-emerald-400 font-medium">{candidate.interviewer_ign}</span> •{' '}
-                {new Date(candidate.created_at).toLocaleDateString()}
-              </p>
+              <span className="text-[11px] text-zinc-400">
+                Evaluator: {candidate.interviewer_ign} • {new Date(candidate.created_at).toLocaleDateString()}
+              </span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+            className="p-1 text-zinc-400 hover:text-zinc-200 rounded"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6 overflow-y-auto flex-1">
-          {/* Status Selector */}
+        <div className="p-5 space-y-4 overflow-y-auto max-h-[75vh]">
+          {/* Admissions Decision */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-              Decision Status
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1.5">
+              Admissions Determination
             </label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setStatus('accepted')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs transition-all ${
-                  status === 'accepted'
-                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 ring-2 ring-emerald-400'
-                    : 'bg-gray-950 border border-gray-800 text-gray-400 hover:border-emerald-500/50 hover:text-emerald-400'
-                }`}
-              >
-                <Check className="w-4 h-4" />
-                ACCEPT TO SMP
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setStatus('pending')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs transition-all ${
-                  status === 'pending'
-                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30 ring-2 ring-amber-400'
-                    : 'bg-gray-950 border border-gray-800 text-gray-400 hover:border-amber-500/50 hover:text-amber-400'
-                }`}
-              >
-                <Clock className="w-4 h-4" />
-                PENDING REVIEW
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setStatus('rejected')}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs transition-all ${
-                  status === 'rejected'
-                    ? 'bg-red-600 text-white shadow-lg shadow-red-600/30 ring-2 ring-red-400'
-                    : 'bg-gray-950 border border-gray-800 text-gray-400 hover:border-red-500/50 hover:text-red-400'
-                }`}
-              >
-                <XCircle className="w-4 h-4" />
-                REJECT
-              </button>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { id: 'accepted', label: 'Admit to SMP' },
+                { id: 'pending', label: 'Under Review' },
+                { id: 'rejected', label: 'Disqualified' },
+              ].map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setStatus(s.id as CandidateStatus)}
+                  className={`py-2 rounded-md font-medium text-xs border transition-colors ${
+                    status === s.id
+                      ? s.id === 'accepted'
+                        ? 'bg-emerald-950/70 border-emerald-700 text-emerald-300'
+                        : s.id === 'pending'
+                        ? 'bg-amber-950/70 border-amber-700 text-amber-300'
+                        : 'bg-rose-950/70 border-rose-700 text-rose-300'
+                      : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Star Rating Adjuster */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-              Interview Evaluation Rating (1 to 5 Stars)
+          <div className="p-3.5 rounded-lg bg-zinc-950 border border-zinc-800 space-y-1.5">
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400">
+              Evaluation Score
             </label>
-            <div className="p-3.5 rounded-xl bg-gray-950/70 border border-gray-800/80">
-              <StarRating value={rating} onChange={setRating} size="lg" />
-            </div>
+            <StarRating value={rating} onChange={setRating} size="md" />
           </div>
 
-          {/* Notes */}
+          {/* Assessment Log */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-              Interview Notes & Observations
+            <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1">
+              Assessment Log & Interview Notes
             </label>
             <textarea
-              rows={5}
+              rows={4}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes taken during the interview..."
-              className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 placeholder-gray-600"
+              className="w-full p-2.5 rounded-md bg-zinc-950 border border-zinc-800 text-zinc-100 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-400 leading-relaxed"
             />
           </div>
 
           {/* Tags */}
           {candidate.tags && candidate.tags.length > 0 && (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
-                Candidate Tags
+              <label className="block text-[11px] font-medium uppercase tracking-wider text-zinc-400 mb-1.5">
+                Competency Badges
               </label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1">
                 {candidate.tags.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-950/70 text-emerald-300 border border-emerald-500/30"
+                    className="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-800 border border-zinc-700 text-zinc-300"
                   >
                     {tag}
                   </span>
@@ -195,22 +170,22 @@ export default function CandidateModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-800 bg-gray-950/80">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-zinc-800 bg-zinc-950/60">
           <button
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-950/50 transition-colors border border-transparent hover:border-red-500/30"
+            className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
-            Delete Candidate
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete</span>
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+              className="px-3 py-1.5 rounded-md text-xs font-medium text-zinc-400 hover:text-zinc-200"
             >
               Cancel
             </button>
@@ -218,9 +193,8 @@ export default function CandidateModal({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition-colors"
+              className="px-3.5 py-1.5 rounded-md text-xs font-medium bg-zinc-100 hover:bg-white text-zinc-950 transition-colors shadow-sm"
             >
-              <Save className="w-4 h-4" />
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
