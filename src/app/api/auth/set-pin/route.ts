@@ -13,15 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let staffMember = null;
-    if (id) {
-      staffMember = await setStaffPin(id, pin.trim());
-    } else if (discord_tag) {
-      const existing = await findStaffByDiscord(discord_tag);
-      if (existing) {
-        staffMember = await setStaffPin(existing.id, pin.trim());
-      }
-    }
+    const staffMember = await setStaffPin(id || discord_tag, pin.trim(), discord_tag);
 
     if (!staffMember) {
       return NextResponse.json(

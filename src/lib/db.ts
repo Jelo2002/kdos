@@ -199,6 +199,34 @@ export async function deleteCandidate(id: string): Promise<boolean> {
 // STAFF MEMBERS DATABASE ACCESS
 // =========================================================
 
+export function parseStaffRow(row: any): StaffMember {
+  let pin = row.pin || null;
+  let loaReason = row.loa_reason || null;
+
+  // Smart fallback: If 'pin' column is missing/null in PostgreSQL, decode it from loa_reason
+  if (!pin && loaReason && typeof loaReason === 'string') {
+    const pinMatch = loaReason.match(/^\[PIN:([^\]]+)\]\s*(.*)$/);
+    if (pinMatch) {
+      pin = pinMatch[1].trim();
+      loaReason = pinMatch[2] ? pinMatch[2].trim() : null;
+    }
+  }
+
+  return {
+    id: row.id,
+    ign: row.ign,
+    discord_tag: row.discord_tag || '',
+    role: row.role,
+    department: row.department,
+    status: row.status || 'Active',
+    pin: pin,
+    loa_reason: loaReason,
+    loa_return_date: row.loa_return_date || null,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 export async function getStaff(filters?: {
   department?: string;
   status?: string;
@@ -225,7 +253,7 @@ export async function getStaff(filters?: {
         supabase.from('staff').delete().in('ign', DEMO_STAFF_IGNS).then(() => {});
         data = data.filter(s => !DEMO_STAFF_IGNS.includes(s.ign));
       }
-      return data as StaffMember[];
+      return data.map(parseStaffRow);
     }
   }
 
@@ -270,13 +298,19 @@ export async function createStaff(data: {
 
   if (supabase) {
     try {
+      // Encode PIN into loa_reason as guaranteed fallback in case remote Supabase lacks 'pin' column
+      let encodedReason = newStaff.loa_reason;
+      if (newStaff.pin) {
+        encodedReason = `[PIN:${newStaff.pin}] ${newStaff.loa_reason || ''}`.trim();
+      }
+
       const payload: any = {
         ign: newStaff.ign,
         discord_tag: newStaff.discord_tag,
         role: newStaff.role,
         department: newStaff.department,
         status: newStaff.status,
-        loa_reason: newStaff.loa_reason,
+        loa_reason: encodedReason,
         loa_return_date: newStaff.loa_return_date,
       };
       if (newStaff.pin !== undefined) {
@@ -285,7 +319,7 @@ export async function createStaff(data: {
 
       let { data: inserted, error } = await supabase.from('staff').insert(payload).select().single();
 
-      // If remote table is missing 'pin' column, retry insert without pin column
+      // If remote table is missing 'pin' column, retry insert without pin column (loa_reason already holds encoded PIN)
       if (error && error.message && error.message.toLowerCase().includes('pin')) {
         delete payload.pin;
         const retry = await supabase.from('staff').insert(payload).select().single();
@@ -294,7 +328,8 @@ export async function createStaff(data: {
       }
 
       if (!error && inserted) {
-        const result = { ...(inserted as StaffMember), pin: newStaff.pin };
+        const result = parseStaffRow(inserted);
+        if (newStaff.pin) result.pin = newStaff.pin;
         memoryStaff.unshift(result);
         return result;
       }
@@ -313,33 +348,67 @@ export async function createStaff(data: {
 export async function updateStaff(id: string, updates: Partial<StaffMember>): Promise<StaffMember | null> {
   if (supabase) {
     try {
-      const { data, error } = await supabase.from('staff').update({
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      
+      const payload: any = {
         ...updates,
         updated_at: new Date().toISOString(),
-      }).eq('id', id).select().single();
+      };
 
-      if (!error && data) return data as StaffMember;
-
-      // If remote table is missing 'pin' column, retry update without pin column
-      if (error && error.message && error.message.toLowerCase().includes('pin')) {
-        const { pin: _pin, ...updatesWithoutPin } = updates;
-        const retry = await supabase.from('staff').update({
-          ...updatesWithoutPin,
-          updated_at: new Date().toISOString(),
-        }).eq('id', id).select().single();
-        if (!retry.error && retry.data) {
-          const res = { ...(retry.data as StaffMember), pin: updates.pin || null };
-          const idx = memoryStaff.findIndex(s => s.id === id);
-          if (idx !== -1) memoryStaff[idx] = res;
-          return res;
+      // If updating pin, also encode it into loa_reason as permanent fallback
+      if (updates.pin !== undefined) {
+        if (updates.pin) {
+          const currentReason = updates.loa_reason || '';
+          payload.loa_reason = `[PIN:${updates.pin}] ${currentReason.replace(/^\[PIN:[^\]]+\]\s*/, '')}`.trim();
+        } else {
+          payload.loa_reason = null;
         }
+      }
+
+      let query = supabase.from('staff').update(payload);
+      if (isUuid) {
+        query = query.eq('id', id);
+      } else {
+        const cleanName = id.replace(/^s-/, '');
+        query = query.or(`ign.ilike.${cleanName},discord_tag.ilike.${cleanName}`);
+      }
+
+      let { data, error } = await query.select().single();
+
+      // If remote table is missing 'pin' column, retry update without pin column (loa_reason has the PIN!)
+      if (error && error.message && error.message.toLowerCase().includes('pin')) {
+        delete payload.pin;
+        let retryQuery = supabase.from('staff').update(payload);
+        if (isUuid) {
+          retryQuery = retryQuery.eq('id', id);
+        } else {
+          const cleanName = id.replace(/^s-/, '');
+          retryQuery = retryQuery.or(`ign.ilike.${cleanName},discord_tag.ilike.${cleanName}`);
+        }
+        const retry = await retryQuery.select().single();
+        data = retry.data;
+        error = retry.error;
+      }
+
+      if (!error && data) {
+        const res = parseStaffRow(data);
+        if (updates.pin !== undefined) res.pin = updates.pin;
+        const idx = memoryStaff.findIndex(s => s.id === id || s.ign.toLowerCase() === res.ign.toLowerCase());
+        if (idx !== -1) memoryStaff[idx] = res;
+        else memoryStaff.unshift(res);
+        return res;
       }
     } catch (e) {
       console.warn('Supabase updateStaff exception:', e);
     }
   }
 
-  const idx = memoryStaff.findIndex(s => s.id === id);
+  const idx = memoryStaff.findIndex(s => 
+    s.id === id || 
+    s.ign.toLowerCase() === id.toLowerCase() || 
+    (s.discord_tag && s.discord_tag.toLowerCase() === id.toLowerCase()) ||
+    s.ign.toLowerCase() === id.replace(/^s-/, '').toLowerCase()
+  );
   if (idx === -1) return null;
 
   memoryStaff[idx] = {
@@ -484,28 +553,77 @@ export async function findStaffByDiscord(discordTag: string): Promise<StaffMembe
     }
   }
 
+  // Fallback to environment PIN for Zenku8258 if set
+  if (found && !found.pin && (normalized === 'zenku8258' || normalized === 'zenku')) {
+    if (process.env.ZENKU_PIN || process.env.ADMIN_PIN) {
+      found.pin = (process.env.ZENKU_PIN || process.env.ADMIN_PIN)!.trim();
+    }
+  }
+
   return found;
 }
 
-export async function setStaffPin(id: string, pin: string): Promise<StaffMember | null> {
-  const updated = await updateStaff(id, { pin: pin.trim() });
+export async function setStaffPin(idOrTag: string, pin: string, discordTag?: string): Promise<StaffMember | null> {
+  const cleanPin = pin.trim();
+
+  // Try direct update by idOrTag first
+  let updated = await updateStaff(idOrTag, { pin: cleanPin });
   if (updated) return updated;
 
-  // Search by ID or Discord tag in memory fallback
-  const idx = memoryStaff.findIndex(s => s.id === id);
+  // Search staff to find the real record by tag or ign
+  const tagToSearch = discordTag || idOrTag;
+  const staff = await getStaff();
+  const normalized = normalizeDiscord(tagToSearch);
+  const found = staff.find(s => 
+    s.id === idOrTag || 
+    normalizeDiscord(s.discord_tag) === normalized || 
+    normalizeDiscord(s.ign) === normalized ||
+    s.id === `s-${normalized}`
+  );
+
+  if (found) {
+    updated = await updateStaff(found.id, { pin: cleanPin });
+    if (updated) return updated;
+  }
+
+  // Memory fallback
+  const idx = memoryStaff.findIndex(s => 
+    s.id === idOrTag || 
+    normalizeDiscord(s.discord_tag) === normalized || 
+    normalizeDiscord(s.ign) === normalized
+  );
   if (idx !== -1) {
-    memoryStaff[idx].pin = pin.trim();
+    memoryStaff[idx].pin = cleanPin;
     memoryStaff[idx].updated_at = new Date().toISOString();
     return memoryStaff[idx];
   }
+
   return null;
 }
 
-export async function resetStaffPin(id: string): Promise<StaffMember | null> {
-  const updated = await updateStaff(id, { pin: null });
+export async function resetStaffPin(idOrTag: string): Promise<StaffMember | null> {
+  let updated = await updateStaff(idOrTag, { pin: null, loa_reason: null });
   if (updated) return updated;
 
-  const idx = memoryStaff.findIndex(s => s.id === id);
+  const staff = await getStaff();
+  const normalized = normalizeDiscord(idOrTag);
+  const found = staff.find(s => 
+    s.id === idOrTag || 
+    normalizeDiscord(s.discord_tag) === normalized || 
+    normalizeDiscord(s.ign) === normalized ||
+    s.id === `s-${normalized}`
+  );
+
+  if (found) {
+    updated = await updateStaff(found.id, { pin: null, loa_reason: null });
+    if (updated) return updated;
+  }
+
+  const idx = memoryStaff.findIndex(s => 
+    s.id === idOrTag || 
+    normalizeDiscord(s.discord_tag) === normalized || 
+    normalizeDiscord(s.ign) === normalized
+  );
   if (idx !== -1) {
     memoryStaff[idx].pin = null;
     memoryStaff[idx].updated_at = new Date().toISOString();
