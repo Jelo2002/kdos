@@ -62,22 +62,12 @@ ON CONFLICT (id) DO UPDATE SET
     min_required_staff = EXCLUDED.min_required_staff,
     description = EXCLUDED.description;
 
--- SEED SAMPLE CANDIDATES
-INSERT INTO candidates (ign, rating, notes, interviewer_ign, status, tags) VALUES
-('Grian', 5, 'Exceptional mega-builder with 8 years of survival experience. Very mature, polite on mic. Clear microphone and understands lore rules.', 'Avery_Dev', 'accepted', '["Builder", "Active", "Good Mic", "Chill"]'::jsonb),
-('MumboJumbo', 5, 'Legendary redstone engineer. Demonstrated piston door vault and automated farm layouts. Super polite and high community vibe.', 'Kev_Owner', 'accepted', '["Redstone", "Active", "Good Mic"]'::jsonb),
-('TechnoBlade99', 4, 'Skilled PvP player, active community member. Wants to participate in tournaments. Good mic, casual schedule.', 'Sarah_Mod', 'pending', '["PvP", "Active"]'::jsonb),
-('GrieferTroll12', 1, 'Refused to read server rules. Questioned ban policies aggressively. Poor mic quality and background echo. Do not accept.', 'Sarah_Mod', 'rejected', '["Toxic", "Rule Issues"]'::jsonb),
-('PixelCraftie', 3, 'Friendly builder, decent answers to lore questions. However, only plays 1-2 hours on weekends. Decent mic.', 'Avery_Dev', 'pending', '["Casual", "Builder"]'::jsonb);
-
--- SEED SAMPLE STAFF MEMBERS (Illustrating Active, LOA, and Hiatus)
+-- SEED INITIAL DEVELOPER ACCOUNT
 INSERT INTO staff (ign, discord_tag, role, department, status, pin, loa_reason, loa_return_date) VALUES
-('Zenku8258', 'Zenku8258', 'Developer', 'Development & Tech', 'Active', NULL, NULL, NULL),
-('Kev_Owner', 'kev_owner#0001', 'Owner', 'Management & Leadership', 'Active', NULL, NULL, NULL),
-('Avery_Dev', 'avery.dev#1337', 'Developer', 'Development & Tech', 'Active', NULL, NULL, NULL),
-('Sarah_Mod', 'sarah_staff#4421', 'Moderator', 'Server Moderation', 'Active', NULL, NULL),
-('PixelWatcher', 'pixel_mod#8899', 'Moderator', 'Server Moderation', 'LOA', 'College midterm exams and study week', '2026-09-25'),
-('BlockDoctor', 'blockdoc#2211', 'Interviewer', 'Recruitment & Interviews', 'Active', NULL, NULL),
-('InterviewPro', 'interviewer_sam#9021', 'Interviewer', 'Recruitment & Interviews', 'Hiatus', 'Moving apartments and awaiting ISP installation', '2026-09-20'),
-('EchoVoice', 'echovoice#7712', 'Interviewer', 'Recruitment & Interviews', 'LOA', 'Medical recovery leave', '2026-10-01'),
-('MasterBuilderBob', 'bobbuilds#6632', 'Builder', 'Building & World Design', 'Active', NULL, NULL);
+('Zenku8258', 'Zenku8258', 'Developer', 'Development & Tech', 'Active', NULL, NULL, NULL);
+
+-- CLEANUP UTILITY: Run these if you previously seeded demo data in Supabase:
+-- DELETE FROM candidates WHERE ign IN ('Grian', 'MumboJumbo', 'TechnoBlade99', 'GrieferTroll12', 'PixelCraftie');
+-- DELETE FROM staff WHERE ign IN ('Kev_Owner', 'Avery_Dev', 'Sarah_Mod', 'PixelWatcher', 'BlockDoctor', 'InterviewPro', 'EchoVoice', 'MasterBuilderBob');
+
+

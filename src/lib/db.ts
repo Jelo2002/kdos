@@ -17,63 +17,10 @@ if (supabaseUrl && supabaseKey && !supabaseUrl.includes('your-project-id')) {
 // =========================================================
 // IN-MEMORY / DEMO STORE FALLBACK (Safe for initial preview & dev)
 // =========================================================
-const initialCandidates: Candidate[] = [
-  {
-    id: 'c-1',
-    ign: 'Grian',
-    rating: 5,
-    notes: 'Exceptional mega-builder with 8 years of survival experience. Very mature, polite on mic. Clear microphone and understands lore rules.',
-    interviewer_ign: 'Avery_Dev',
-    status: 'accepted',
-    tags: ['Builder', 'Active', 'Good Mic', 'Chill'],
-    created_at: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-  },
-  {
-    id: 'c-2',
-    ign: 'MumboJumbo',
-    rating: 5,
-    notes: 'Legendary redstone engineer. Demonstrated piston door vault and automated farm layouts. Super polite and high community vibe.',
-    interviewer_ign: 'Kev_Owner',
-    status: 'accepted',
-    tags: ['Redstone', 'Active', 'Good Mic'],
-    created_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-  },
-  {
-    id: 'c-3',
-    ign: 'TechnoBlade99',
-    rating: 4,
-    notes: 'Skilled PvP player, active community member. Wants to participate in tournaments. Good mic, casual schedule.',
-    interviewer_ign: 'Sarah_Mod',
-    status: 'pending',
-    tags: ['PvP', 'Active'],
-    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-  },
-  {
-    id: 'c-4',
-    ign: 'GrieferTroll12',
-    rating: 1,
-    notes: 'Refused to read server rules. Questioned ban policies aggressively. Poor mic quality and background echo. Do not accept.',
-    interviewer_ign: 'Sarah_Mod',
-    status: 'rejected',
-    tags: ['Toxic', 'Rule Issues'],
-    created_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 8).toISOString(),
-  },
-  {
-    id: 'c-5',
-    ign: 'PixelCraftie',
-    rating: 3,
-    notes: 'Friendly builder, decent answers to lore questions. However, only plays 1-2 hours on weekends. Decent mic.',
-    interviewer_ign: 'Avery_Dev',
-    status: 'pending',
-    tags: ['Casual', 'Builder'],
-    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-  }
-];
+const DEMO_CANDIDATE_IGNS = ['Grian', 'MumboJumbo', 'TechnoBlade99', 'GrieferTroll12', 'PixelCraftie'];
+const DEMO_STAFF_IGNS = ['Kev_Owner', 'Avery_Dev', 'Sarah_Mod', 'PixelWatcher', 'BlockDoctor', 'InterviewPro', 'EchoVoice', 'MasterBuilderBob'];
+
+const initialCandidates: Candidate[] = [];
 
 const initialStaff: StaffMember[] = [
   {
@@ -88,104 +35,6 @@ const initialStaff: StaffMember[] = [
     loa_return_date: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-  },
-  {
-    id: 's-1',
-    ign: 'Kev_Owner',
-    discord_tag: 'kev_owner#0001',
-    role: 'Owner',
-    department: 'Management & Leadership',
-    status: 'Active',
-    pin: '1234', // Default PIN for initial demo owner
-    loa_reason: null,
-    loa_return_date: null,
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 's-2',
-    ign: 'Avery_Dev',
-    discord_tag: 'avery.dev#1337',
-    role: 'Developer',
-    department: 'Development & Tech',
-    status: 'Active',
-    pin: '1234', // Default PIN for initial demo dev
-    loa_reason: null,
-    loa_return_date: null,
-    created_at: '2026-01-10T00:00:00Z',
-    updated_at: '2026-01-10T00:00:00Z',
-  },
-  {
-    id: 's-3',
-    ign: 'Sarah_Mod',
-    discord_tag: 'sarah_staff#4421',
-    role: 'Moderator',
-    department: 'Server Moderation',
-    status: 'Active',
-    loa_reason: null,
-    loa_return_date: null,
-    created_at: '2026-02-01T00:00:00Z',
-    updated_at: '2026-02-01T00:00:00Z',
-  },
-  {
-    id: 's-4',
-    ign: 'PixelWatcher',
-    discord_tag: 'pixel_mod#8899',
-    role: 'Moderator',
-    department: 'Server Moderation',
-    status: 'LOA',
-    loa_reason: 'College midterm exams and study week',
-    loa_return_date: '2026-09-25',
-    created_at: '2026-02-15T00:00:00Z',
-    updated_at: '2026-09-08T00:00:00Z',
-  },
-  {
-    id: 's-5',
-    ign: 'BlockDoctor',
-    discord_tag: 'blockdoc#2211',
-    role: 'Interviewer',
-    department: 'Recruitment & Interviews',
-    status: 'Active',
-    loa_reason: null,
-    loa_return_date: null,
-    created_at: '2026-03-01T00:00:00Z',
-    updated_at: '2026-03-01T00:00:00Z',
-  },
-  {
-    id: 's-6',
-    ign: 'InterviewPro',
-    discord_tag: 'interviewer_sam#9021',
-    role: 'Interviewer',
-    department: 'Recruitment & Interviews',
-    status: 'Hiatus',
-    loa_reason: 'Moving apartments and awaiting ISP fiber installation',
-    loa_return_date: '2026-09-20',
-    created_at: '2026-03-15T00:00:00Z',
-    updated_at: '2026-09-05T00:00:00Z',
-  },
-  {
-    id: 's-7',
-    ign: 'EchoVoice',
-    discord_tag: 'echovoice#7712',
-    role: 'Interviewer',
-    department: 'Recruitment & Interviews',
-    status: 'LOA',
-    loa_reason: 'Medical recovery leave',
-    loa_return_date: '2026-10-01',
-    created_at: '2026-04-01T00:00:00Z',
-    updated_at: '2026-09-02T00:00:00Z',
-  },
-  {
-    id: 's-8',
-    ign: 'MasterBuilderBob',
-    discord_tag: 'bobbuilds#6632',
-    role: 'Builder',
-    department: 'Building & World Design',
-    status: 'Active',
-    loa_reason: null,
-    loa_return_date: null,
-    created_at: '2026-04-15T00:00:00Z',
-    updated_at: '2026-04-15T00:00:00Z',
   }
 ];
 
@@ -237,8 +86,16 @@ export async function getCandidates(filters?: {
       query = query.order('created_at', { ascending: false });
     }
 
-    const { data, error } = await query;
-    if (!error && data) return data as Candidate[];
+    let { data, error } = await query;
+    if (!error && data) {
+      // Purge and exclude any demo candidates from Supabase
+      const hasDemo = data.some(c => DEMO_CANDIDATE_IGNS.includes(c.ign));
+      if (hasDemo) {
+        supabase.from('candidates').delete().in('ign', DEMO_CANDIDATE_IGNS).then(() => {});
+        data = data.filter(c => !DEMO_CANDIDATE_IGNS.includes(c.ign));
+      }
+      return data as Candidate[];
+    }
   }
 
   // Memory fallback
@@ -360,8 +217,16 @@ export async function getStaff(filters?: {
     }
     query = query.order('created_at', { ascending: false });
 
-    const { data, error } = await query;
-    if (!error && data) return data as StaffMember[];
+    let { data, error } = await query;
+    if (!error && data) {
+      // Purge and exclude any demo staff from Supabase
+      const hasDemo = data.some(s => DEMO_STAFF_IGNS.includes(s.ign));
+      if (hasDemo) {
+        supabase.from('staff').delete().in('ign', DEMO_STAFF_IGNS).then(() => {});
+        data = data.filter(s => !DEMO_STAFF_IGNS.includes(s.ign));
+      }
+      return data as StaffMember[];
+    }
   }
 
   let list = [...memoryStaff];
@@ -385,6 +250,7 @@ export async function createStaff(data: {
   role: StaffMember['role'];
   department: string;
   status?: StaffStatus;
+  pin?: string | null;
   loa_reason?: string;
   loa_return_date?: string;
 }): Promise<StaffMember> {
@@ -395,6 +261,7 @@ export async function createStaff(data: {
     role: data.role,
     department: data.department.trim(),
     status: data.status || 'Active',
+    pin: data.pin || null,
     loa_reason: data.loa_reason || null,
     loa_return_date: data.loa_return_date || null,
     created_at: new Date().toISOString(),
@@ -402,17 +269,41 @@ export async function createStaff(data: {
   };
 
   if (supabase) {
-    const { data: inserted, error } = await supabase.from('staff').insert({
-      ign: newStaff.ign,
-      discord_tag: newStaff.discord_tag,
-      role: newStaff.role,
-      department: newStaff.department,
-      status: newStaff.status,
-      loa_reason: newStaff.loa_reason,
-      loa_return_date: newStaff.loa_return_date,
-    }).select().single();
+    try {
+      const payload: any = {
+        ign: newStaff.ign,
+        discord_tag: newStaff.discord_tag,
+        role: newStaff.role,
+        department: newStaff.department,
+        status: newStaff.status,
+        loa_reason: newStaff.loa_reason,
+        loa_return_date: newStaff.loa_return_date,
+      };
+      if (newStaff.pin !== undefined) {
+        payload.pin = newStaff.pin;
+      }
 
-    if (!error && inserted) return inserted as StaffMember;
+      let { data: inserted, error } = await supabase.from('staff').insert(payload).select().single();
+
+      // If remote table is missing 'pin' column, retry insert without pin column
+      if (error && error.message && error.message.toLowerCase().includes('pin')) {
+        delete payload.pin;
+        const retry = await supabase.from('staff').insert(payload).select().single();
+        inserted = retry.data;
+        error = retry.error;
+      }
+
+      if (!error && inserted) {
+        const result = { ...(inserted as StaffMember), pin: newStaff.pin };
+        memoryStaff.unshift(result);
+        return result;
+      }
+      if (error) {
+        console.warn('Supabase createStaff error, falling back to memory:', error.message);
+      }
+    } catch (err) {
+      console.warn('Supabase createStaff exception:', err);
+    }
   }
 
   memoryStaff.unshift(newStaff);
@@ -421,12 +312,31 @@ export async function createStaff(data: {
 
 export async function updateStaff(id: string, updates: Partial<StaffMember>): Promise<StaffMember | null> {
   if (supabase) {
-    const { data, error } = await supabase.from('staff').update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    }).eq('id', id).select().single();
+    try {
+      const { data, error } = await supabase.from('staff').update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      }).eq('id', id).select().single();
 
-    if (!error && data) return data as StaffMember;
+      if (!error && data) return data as StaffMember;
+
+      // If remote table is missing 'pin' column, retry update without pin column
+      if (error && error.message && error.message.toLowerCase().includes('pin')) {
+        const { pin: _pin, ...updatesWithoutPin } = updates;
+        const retry = await supabase.from('staff').update({
+          ...updatesWithoutPin,
+          updated_at: new Date().toISOString(),
+        }).eq('id', id).select().single();
+        if (!retry.error && retry.data) {
+          const res = { ...(retry.data as StaffMember), pin: updates.pin || null };
+          const idx = memoryStaff.findIndex(s => s.id === id);
+          if (idx !== -1) memoryStaff[idx] = res;
+          return res;
+        }
+      }
+    } catch (e) {
+      console.warn('Supabase updateStaff exception:', e);
+    }
   }
 
   const idx = memoryStaff.findIndex(s => s.id === id);
@@ -528,25 +438,80 @@ export async function getAcceptedWhitelist(): Promise<{ ignList: string[]; comma
 // DISCORD & PIN AUTHENTICATION HELPERS
 // =========================================================
 
-function normalizeDiscord(tag: string): string {
+function normalizeDiscord(tag?: string): string {
+  if (!tag) return '';
   return tag.trim().toLowerCase().replace(/^@/, '');
 }
 
 export async function findStaffByDiscord(discordTag: string): Promise<StaffMember | null> {
   const normalized = normalizeDiscord(discordTag);
+  if (!normalized) return null;
+
   const staff = await getStaff();
   
-  return staff.find(s => {
+  let found = staff.find(s => {
     const sTag = normalizeDiscord(s.discord_tag);
-    return sTag === normalized || sTag.split('#')[0] === normalized;
+    const sIgn = normalizeDiscord(s.ign);
+    return sTag === normalized || sTag.split('#')[0] === normalized || sIgn === normalized;
   }) || null;
+
+  // Auto-bootstrap Zenku8258 as Developer if not yet in database (e.g., in a fresh Supabase database)
+  if (!found && (normalized === 'zenku8258' || normalized === 'zenku')) {
+    try {
+      found = await createStaff({
+        ign: 'Zenku8258',
+        discord_tag: 'Zenku8258',
+        role: 'Developer',
+        department: 'Development & Tech',
+        status: 'Active',
+      });
+    } catch (e) {
+      console.error('Failed to auto-provision Zenku8258:', e);
+      found = {
+        id: 's-zenku',
+        ign: 'Zenku8258',
+        discord_tag: 'Zenku8258',
+        role: 'Developer',
+        department: 'Development & Tech',
+        status: 'Active',
+        pin: null,
+        loa_reason: null,
+        loa_return_date: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      memoryStaff.unshift(found);
+    }
+  }
+
+  return found;
 }
 
 export async function setStaffPin(id: string, pin: string): Promise<StaffMember | null> {
-  return updateStaff(id, { pin: pin.trim() });
+  const updated = await updateStaff(id, { pin: pin.trim() });
+  if (updated) return updated;
+
+  // Search by ID or Discord tag in memory fallback
+  const idx = memoryStaff.findIndex(s => s.id === id);
+  if (idx !== -1) {
+    memoryStaff[idx].pin = pin.trim();
+    memoryStaff[idx].updated_at = new Date().toISOString();
+    return memoryStaff[idx];
+  }
+  return null;
 }
 
 export async function resetStaffPin(id: string): Promise<StaffMember | null> {
-  return updateStaff(id, { pin: null });
+  const updated = await updateStaff(id, { pin: null });
+  if (updated) return updated;
+
+  const idx = memoryStaff.findIndex(s => s.id === id);
+  if (idx !== -1) {
+    memoryStaff[idx].pin = null;
+    memoryStaff[idx].updated_at = new Date().toISOString();
+    return memoryStaff[idx];
+  }
+  return null;
 }
+
 
