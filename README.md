@@ -31,10 +31,16 @@ A modern, full-stack web application designed for Minecraft SMP communities. Bui
 - Status tracking: **Active**, **Hiatus**, and **LOA (Leave of Absence)** with return dates and reasons.
 - **Department Deficiency Monitor**: Automatically detects if active staff falls below required minimums and flags understaffed departments with prominent **"LACKING STAFF"** alerts.
 
-### 5. 👥 Multi-Role Navigation & Page Setup
-- **Owner & Developer**: Full administrative access to candidate admissions, staff roster, whitelist generator, and department metrics.
-- **Staff / Interviewer**: Operational portal (`/interview` and `/staff`) focused on conducting interviews, reviewing their past submissions, and reporting their own availability.
-- **Role Switcher**: Persistent role selector in the navbar to test and switch perspectives.
+### 5. 🔐 Quick Login Gate & Role Access
+- **Private Access Gate**: Visitors do not see the internal candidate database upfront.
+- **Role-Separated Portals**:
+  - **Staff / Interviewers** log in with their Minecraft IGN and staff passcode to jump straight into the Interview Portal (`/interview`).
+  - **Owners & Developers** log in with their admin passcode to unlock the Candidate DBMS and Staff Management System.
+- **Default Passcodes** (Click to auto-fill or customize in Vercel Environment Variables):
+  - **Owner**: `owner123` (`NEXT_PUBLIC_OWNER_PIN`)
+  - **Developer**: `dev123` (`NEXT_PUBLIC_DEV_PIN`)
+  - **Staff**: `staff123` (`NEXT_PUBLIC_STAFF_PIN`)
+- **One-Click Logout**: Securely end session anytime.
 
 ---
 

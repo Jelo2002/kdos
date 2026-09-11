@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRole } from './RoleContext';
+import SkinAvatar from './SkinAvatar';
 import { 
   Shield, 
   Users, 
@@ -15,8 +16,8 @@ import {
   Terminal, 
   Crown, 
   Code2, 
-  Sparkles,
-  Layers
+  LogOut,
+  Sparkles
 } from 'lucide-react';
 import { ActiveRole } from '@/lib/types';
 
@@ -26,14 +27,15 @@ interface NavbarProps {
 
 export default function Navbar({ onOpenWhitelist }: NavbarProps) {
   const pathname = usePathname();
-  const { role, setRole, isOwnerOrDev } = useRole();
+  const { role, setRole, isOwnerOrDev, user, staffName, logout } = useRole();
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const displayName = user?.ign || staffName || 'StaffMember';
 
   const rolesList: { role: ActiveRole; label: string; icon: any; color: string }[] = [
     { role: 'Owner', label: 'Owner (Full Access)', icon: Crown, color: 'text-amber-400' },
     { role: 'Developer', label: 'Developer (Full Access)', icon: Code2, color: 'text-blue-400' },
-    { role: 'Staff/Interviewer', label: 'Staff / Interviewer', icon: ClipboardCheck, color: 'text-emerald-400' },
   ];
 
   return (
@@ -42,7 +44,7 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
           <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2.5 group">
+            <Link href={isOwnerOrDev ? "/" : "/interview"} className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center text-gray-950 shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
                 <Shield className="w-5 h-5" />
               </div>
@@ -51,7 +53,7 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
                   KDOS <span className="text-emerald-400">SMP</span>
                 </span>
                 <span className="hidden sm:inline-block ml-2 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-emerald-400">
-                  DBMS & Staff
+                  {role} Portal
                 </span>
               </div>
             </Link>
@@ -94,7 +96,7 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
                   }`}
                 >
                   <ClipboardCheck className="w-4 h-4" />
-                  Interview Portal
+                  Interview Form
                 </Link>
               </>
             ) : (
@@ -126,7 +128,7 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
             )}
           </nav>
 
-          {/* Right Action Area & Role Switcher */}
+          {/* Right Area: Logged In User Profile & Logout */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Whitelist quick button for Owners/Devs */}
             {isOwnerOrDev && onOpenWhitelist && (
@@ -140,59 +142,76 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
               </button>
             )}
 
-            {/* Role Switcher Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-900/90 border border-gray-800 hover:border-gray-700 text-gray-200 transition-all focus:outline-none"
-              >
-                <span className="text-gray-400 font-normal">Role:</span>
-                <span className="flex items-center gap-1.5 font-bold text-white">
-                  {role === 'Owner' && <Crown className="w-3.5 h-3.5 text-amber-400" />}
-                  {role === 'Developer' && <Code2 className="w-3.5 h-3.5 text-blue-400" />}
-                  {role === 'Staff/Interviewer' && <ClipboardCheck className="w-3.5 h-3.5 text-emerald-400" />}
-                  {role}
-                </span>
-                <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${roleDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+            {/* Authenticated User Pill */}
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800">
+              <SkinAvatar ign={displayName} size={28} />
+              <div className="hidden sm:block text-left">
+                <div className="text-xs font-bold text-white leading-none truncate max-w-[100px]">
+                  {displayName}
+                </div>
+                <div className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1 mt-0.5">
+                  {role === 'Owner' && <Crown className="w-2.5 h-2.5 text-amber-400" />}
+                  {role === 'Developer' && <Code2 className="w-2.5 h-2.5 text-blue-400" />}
+                  {role === 'Staff/Interviewer' && <ClipboardCheck className="w-2.5 h-2.5 text-emerald-400" />}
+                  <span>{role}</span>
+                </div>
+              </div>
 
-              {roleDropdownOpen && (
-                <div 
-                  className="absolute right-0 mt-2 w-56 rounded-xl bg-gray-900 border border-gray-800 shadow-2xl py-2 z-50 animate-fadeIn"
-                  onMouseLeave={() => setRoleDropdownOpen(false)}
-                >
-                  <div className="px-3 py-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-800">
-                    Switch Perspective
-                  </div>
-                  {rolesList.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = role === item.role;
-                    return (
-                      <button
-                        key={item.role}
-                        type="button"
-                        onClick={() => {
-                          setRole(item.role);
-                          setRoleDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs text-left transition-colors ${
-                          isActive
-                            ? 'bg-emerald-950/60 text-emerald-400 font-semibold'
-                            : 'text-gray-300 hover:bg-gray-800/80 hover:text-white'
-                        }`}
-                      >
-                        <Icon className={`w-4 h-4 ${item.color}`} />
-                        <span>{item.label}</span>
-                      </button>
-                    );
-                  })}
-                  <div className="mt-1 pt-1.5 border-t border-gray-800 px-3 text-[10px] text-gray-500">
-                    Role determines visible dashboard tabs and administrative controls.
-                  </div>
+              {/* Owner/Dev switch toggle */}
+              {isOwnerOrDev && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                    className="p-1 hover:bg-gray-800 rounded text-gray-400 hover:text-white transition-colors ml-0.5"
+                    title="Switch Owner/Dev view"
+                  >
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${roleDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {roleDropdownOpen && (
+                    <div 
+                      className="absolute right-0 mt-2 w-48 rounded-xl bg-gray-900 border border-gray-800 shadow-2xl py-1.5 z-50 animate-fadeIn"
+                      onMouseLeave={() => setRoleDropdownOpen(false)}
+                    >
+                      {rolesList.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = role === item.role;
+                        return (
+                          <button
+                            key={item.role}
+                            type="button"
+                            onClick={() => {
+                              setRole(item.role);
+                              setRoleDropdownOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs text-left transition-colors ${
+                              isActive
+                                ? 'bg-emerald-950/60 text-emerald-400 font-semibold'
+                                : 'text-gray-300 hover:bg-gray-800/80 hover:text-white'
+                            }`}
+                          >
+                            <Icon className={`w-3.5 h-3.5 ${item.color}`} />
+                            <span>{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* Logout Button */}
+            <button
+              type="button"
+              onClick={logout}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-red-300 hover:text-white transition-colors"
+              title="Log out of session"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
 
             {/* Mobile menu toggle */}
             <button
@@ -260,6 +279,17 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
               </Link>
             </>
           )}
+
+          <div className="pt-2 border-t border-gray-800">
+            <button
+              type="button"
+              onClick={logout}
+              className="w-full flex items-center justify-center gap-2 py-2 text-xs font-bold text-red-400 bg-red-950/40 rounded-lg border border-red-500/30"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out ({displayName})
+            </button>
+          </div>
         </div>
       )}
     </header>
