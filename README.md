@@ -21,12 +21,7 @@ A modern, full-stack web application designed for Minecraft SMP communities. Bui
 - **Candidate Modal**: Inspect complete interview transcripts, edit ratings, and adjust notes.
 - **CSV Exporter**: Download all candidate records into a `.csv` spreadsheet for backups.
 
-### 3. ⚡ Minecraft Whitelist Generator
-- Automatically compiles all candidates marked as **Accepted**.
-- **One-Click Commands**: Copy batch `/whitelist add <ign>` commands ready to paste into your server console.
-- **whitelist.json Export**: Download or copy standard `whitelist.json` format for server FTP/SFTP.
-
-### 4. 🛡️ Staff Management & Department Supervision (`/staff-management`)
+### 3. 🛡️ Staff Management & Department Supervision (`/staff-management`)
 - Full roster tracking for staff members across departments (*Recruitment, Moderation, Development, Building, Events*).
 - Status tracking: **Active**, **Hiatus**, and **LOA (Leave of Absence)** with return dates and reasons.
 - **Department Deficiency Monitor**: Automatically detects if active staff falls below required minimums and flags understaffed departments with prominent **"LACKING STAFF"** alerts.
@@ -135,8 +130,7 @@ KDOS/
 │   │   ├── SkinAvatar.tsx      # Live Minecraft player head preview
 │   │   ├── DepartmentCard.tsx  # Lacking staff warning cards
 │   │   ├── CandidateModal.tsx  # View/edit candidate interview
-│   │   ├── StaffModal.tsx      # Add/edit staff & LOA tracker
-│   │   └── WhitelistModal.tsx  # Copy /whitelist add commands
+│   │   └── StaffModal.tsx      # Add/edit staff & LOA tracker
 │   └── lib/
 │       ├── types.ts            # TypeScript interfaces
 │       └── db.ts               # Supabase client + fallback store

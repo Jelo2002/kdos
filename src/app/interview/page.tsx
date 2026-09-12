@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRole } from '@/components/RoleContext';
 import StarRating from '@/components/StarRating';
 import SkinAvatar from '@/components/SkinAvatar';
+import { saveCandidateToVault } from '@/lib/backup';
 import { 
   ClipboardCheck, 
   ArrowRight, 
@@ -14,7 +15,8 @@ import {
   Tag,
   FileText,
   User,
-  Check
+  Check,
+  ShieldCheck
 } from 'lucide-react';
 
 const COMPETENCY_TAGS = [
@@ -39,6 +41,7 @@ export default function InterviewPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedCandidate, setSubmittedCandidate] = useState<any | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [isVaultSaved, setIsVaultSaved] = useState(false);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -53,6 +56,7 @@ export default function InterviewPage() {
     setSelectedTags(['Verified Audio/Mic']);
     setSubmittedCandidate(null);
     setErrorMsg('');
+    setIsVaultSaved(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,12 +68,28 @@ export default function InterviewPage() {
       return;
     }
 
+    const evaluator = interviewerIgn.trim() || staffName || 'Staff';
+    if (interviewerIgn.trim()) {
+      setStaffName(interviewerIgn.trim());
+    }
+
+    // Tier 1 Fail-Safe: Immediately secure to client device's persistent local vault
+    const localCandidate = {
+      id: `c-local-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      ign: ign.trim(),
+      rating,
+      notes: notes.trim(),
+      interviewer_ign: evaluator,
+      status: 'pending' as const,
+      tags: selectedTags,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    saveCandidateToVault(localCandidate);
+    setIsVaultSaved(true);
+
     setIsSubmitting(true);
     try {
-      if (interviewerIgn.trim()) {
-        setStaffName(interviewerIgn.trim());
-      }
-
       const res = await fetch('/api/candidates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -77,19 +97,28 @@ export default function InterviewPage() {
           ign: ign.trim(),
           rating,
           notes: notes.trim(),
-          interviewer_ign: interviewerIgn.trim() || 'Staff',
+          interviewer_ign: evaluator,
           tags: selectedTags,
         }),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit candidate evaluation');
+        // Even if server failed, the candidate is saved in local vault!
+        setSubmittedCandidate(localCandidate);
+        return;
       }
 
-      setSubmittedCandidate(data.candidate);
+      if (data.candidate) {
+        saveCandidateToVault(data.candidate);
+        setSubmittedCandidate(data.candidate);
+      } else {
+        setSubmittedCandidate(localCandidate);
+      }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Error recording evaluation. Please try again.');
+      console.warn('Network error during candidate submit, falling back to local vault:', err);
+      // Fail-safe: Candidate is secured in browser storage
+      setSubmittedCandidate(localCandidate);
     } finally {
       setIsSubmitting(false);
     }
@@ -157,6 +186,9 @@ export default function InterviewPage() {
                 Pending Review
               </span>
             </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-zinc-950 border border-zinc-800/80 text-[11px] text-zinc-400">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+            <span>Preserved in your device's local offline vault. Auto-syncs to the main dashboard.</span>
           </div>
 
           <div className="flex items-center gap-2.5 pt-2">

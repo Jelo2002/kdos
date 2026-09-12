@@ -20,7 +20,52 @@ if (supabaseUrl && supabaseKey && !supabaseUrl.includes('your-project-id')) {
 const DEMO_CANDIDATE_IGNS = ['Grian', 'MumboJumbo', 'TechnoBlade99', 'GrieferTroll12', 'PixelCraftie'];
 const DEMO_STAFF_IGNS = ['Kev_Owner', 'Avery_Dev', 'Sarah_Mod', 'PixelWatcher', 'BlockDoctor', 'InterviewPro', 'EchoVoice', 'MasterBuilderBob'];
 
-const initialCandidates: Candidate[] = [];
+const initialCandidates: Candidate[] = [
+  {
+    id: 'c-1789201774458-l1x93',
+    ign: 'va nyavanya',
+    rating: 4,
+    notes: "he's 19 years old and newbie, experienced mc 3 months. he's good and nicely to answer person to answer my all questions",
+    interviewer_ign: 'bunnxyx',
+    status: 'pending',
+    tags: ['Verified Audio/Mic', 'Advanced Architecture'],
+    created_at: '2026-09-12T08:29:34.458Z',
+    updated_at: '2026-09-12T08:29:34.458Z',
+  },
+  {
+    id: 'c-1789201758068-hv0iu',
+    ign: 'Layooopell2',
+    rating: 2,
+    notes: 'Hindi masyadong clear yung answers',
+    interviewer_ign: '.Avapaica',
+    status: 'pending',
+    tags: ['Verified Audio/Mic'],
+    created_at: '2026-09-12T08:29:18.068Z',
+    updated_at: '2026-09-12T08:29:18.068Z',
+  },
+  {
+    id: 'c-1789201595357-jtqu3',
+    ign: 'fathersiterior',
+    rating: 5,
+    notes: 'Magaling sumagot mature sya friendly din',
+    interviewer_ign: 'Dream',
+    status: 'pending',
+    tags: ['Verified Audio/Mic'],
+    created_at: '2026-09-12T08:26:35.357Z',
+    updated_at: '2026-09-12T08:26:35.357Z',
+  },
+  {
+    id: 'c-1789201184069-90uib',
+    ign: 'Goldsheep',
+    rating: 4,
+    notes: 'Builder po',
+    interviewer_ign: 'Lccccccc4755',
+    status: 'accepted',
+    tags: ['Verified Audio/Mic'],
+    created_at: '2026-09-12T08:19:44.069Z',
+    updated_at: '2026-09-12T08:20:09.495Z',
+  },
+];
 
 const initialStaff: StaffMember[] = [
   {
@@ -30,8 +75,8 @@ const initialStaff: StaffMember[] = [
     role: 'Developer',
     department: 'Development & Tech',
     status: 'Active',
-    pin: null, // First sign-in prompts Zenku8258 to set their personal PIN
-    loa_reason: null,
+    pin: '1234', // Pre-configured default PIN for Zenku8258 Developer
+    loa_reason: '[PIN:1234]',
     loa_return_date: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -94,6 +139,26 @@ export async function getCandidates(filters?: {
         supabase.from('candidates').delete().in('ign', DEMO_CANDIDATE_IGNS).then(() => {});
         data = data.filter(c => !DEMO_CANDIDATE_IGNS.includes(c.ign));
       }
+      if (data.length === 0 && !filters?.status && !filters?.search && !filters?.minRating && !filters?.interviewer) {
+        // Auto-seed initial recovered candidates into fresh Supabase database
+        for (const initCand of initialCandidates) {
+          try {
+            await supabase.from('candidates').insert({
+              ign: initCand.ign,
+              rating: initCand.rating,
+              notes: initCand.notes,
+              interviewer_ign: initCand.interviewer_ign,
+              status: initCand.status,
+              tags: initCand.tags,
+              created_at: initCand.created_at,
+              updated_at: initCand.updated_at,
+            });
+          } catch (e) {
+            console.warn('Failed to seed initial candidate to Supabase:', e);
+          }
+        }
+        return [...initialCandidates];
+      }
       return data as Candidate[];
     }
   }
@@ -146,21 +211,105 @@ export async function createCandidate(data: {
     updated_at: new Date().toISOString(),
   };
 
-  if (supabase) {
-    const { data: inserted, error } = await supabase.from('candidates').insert({
-      ign: newCandidate.ign,
-      rating: newCandidate.rating,
-      notes: newCandidate.notes,
-      interviewer_ign: newCandidate.interviewer_ign,
-      status: newCandidate.status,
-      tags: newCandidate.tags,
-    }).select().single();
+  // Critical Audit Log: Ensure Vercel runtime logs ALWAYS record full candidate payload
+  console.log('[KDOS_CANDIDATE_AUDIT]', JSON.stringify({
+    event: 'CANDIDATE_SUBMITTED',
+    candidate: newCandidate,
+    timestamp: new Date().toISOString(),
+  }));
 
-    if (!error && inserted) return inserted as Candidate;
+  if (supabase) {
+    try {
+      const { data: inserted, error } = await supabase.from('candidates').insert({
+        ign: newCandidate.ign,
+        rating: newCandidate.rating,
+        notes: newCandidate.notes,
+        interviewer_ign: newCandidate.interviewer_ign,
+        status: newCandidate.status,
+        tags: newCandidate.tags,
+      }).select().single();
+
+      if (!error && inserted) return inserted as Candidate;
+    } catch (err) {
+      console.warn('Supabase createCandidate exception, falling back to memory:', err);
+    }
   }
 
   memoryCandidates.unshift(newCandidate);
   return newCandidate;
+}
+
+export async function syncCandidates(candidatesToSync: Candidate[]): Promise<{ added: number; updated: number; total: number; candidates: Candidate[] }> {
+  let added = 0;
+  let updated = 0;
+
+  for (const item of candidatesToSync) {
+    if (!item || !item.ign) continue;
+    const cleanIgn = item.ign.trim();
+    const existingIdx = memoryCandidates.findIndex(c => c.ign.toLowerCase() === cleanIgn.toLowerCase());
+
+    const candidateData: Candidate = {
+      id: item.id || `c-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      ign: cleanIgn,
+      rating: Math.max(1, Math.min(5, Number(item.rating) || 4)),
+      notes: item.notes || '',
+      interviewer_ign: item.interviewer_ign || 'Staff',
+      status: (item.status === 'accepted' || item.status === 'rejected' ? item.status : 'pending') as CandidateStatus,
+      tags: Array.isArray(item.tags) ? item.tags : ['Verified Audio/Mic'],
+      created_at: item.created_at || new Date().toISOString(),
+      updated_at: item.updated_at || new Date().toISOString(),
+    };
+
+    if (existingIdx >= 0) {
+      memoryCandidates[existingIdx] = {
+        ...memoryCandidates[existingIdx],
+        ...candidateData,
+      };
+      updated++;
+    } else {
+      memoryCandidates.unshift(candidateData);
+      added++;
+    }
+
+    if (supabase) {
+      try {
+        const { data: existing } = await supabase.from('candidates').select('id').ilike('ign', cleanIgn).maybeSingle();
+        if (existing) {
+          await supabase.from('candidates').update({
+            rating: candidateData.rating,
+            notes: candidateData.notes,
+            interviewer_ign: candidateData.interviewer_ign,
+            status: candidateData.status,
+            tags: candidateData.tags,
+            updated_at: candidateData.updated_at,
+          }).eq('id', existing.id);
+        } else {
+          await supabase.from('candidates').insert({
+            ign: candidateData.ign,
+            rating: candidateData.rating,
+            notes: candidateData.notes,
+            interviewer_ign: candidateData.interviewer_ign,
+            status: candidateData.status,
+            tags: candidateData.tags,
+            created_at: candidateData.created_at,
+            updated_at: candidateData.updated_at,
+          });
+        }
+      } catch (err) {
+        console.warn('Supabase syncCandidate error:', err);
+      }
+    }
+  }
+
+  console.log('[KDOS_SYNC_AUDIT]', JSON.stringify({
+    event: 'CANDIDATES_SYNCED',
+    added,
+    updated,
+    total: memoryCandidates.length,
+    timestamp: new Date().toISOString(),
+  }));
+
+  return { added, updated, total: memoryCandidates.length, candidates: memoryCandidates };
 }
 
 export async function updateCandidate(id: string, updates: Partial<Candidate>): Promise<Candidate | null> {
@@ -461,7 +610,7 @@ export async function getDepartmentsHealth(): Promise<DepartmentHealth[]> {
 }
 
 // =========================================================
-// SYSTEM STATS & WHITELIST UTILS
+// SYSTEM STATS
 // =========================================================
 
 export async function getStats(): Promise<SystemStats> {
@@ -492,17 +641,6 @@ export async function getStats(): Promise<SystemStats> {
   };
 }
 
-export async function getAcceptedWhitelist(): Promise<{ ignList: string[]; commands: string[]; json: any[] }> {
-  const candidates = await getCandidates({ status: 'accepted' });
-  const ignList = candidates.map(c => c.ign);
-  const commands = ignList.map(ign => `/whitelist add ${ign}`);
-  const json = ignList.map(ign => ({
-    name: ign,
-  }));
-
-  return { ignList, commands, json };
-}
-
 // =========================================================
 // DISCORD & PIN AUTHENTICATION HELPERS
 // =========================================================
@@ -525,6 +663,8 @@ export async function findStaffByDiscord(discordTag: string): Promise<StaffMembe
   }) || null;
 
   // Auto-bootstrap Zenku8258 as Developer if not yet in database (e.g., in a fresh Supabase database)
+  const defaultZenkuPin = (process.env.ZENKU_PIN || process.env.ADMIN_PIN || '1234').trim();
+
   if (!found && (normalized === 'zenku8258' || normalized === 'zenku')) {
     try {
       found = await createStaff({
@@ -533,6 +673,7 @@ export async function findStaffByDiscord(discordTag: string): Promise<StaffMembe
         role: 'Developer',
         department: 'Development & Tech',
         status: 'Active',
+        pin: defaultZenkuPin,
       });
     } catch (e) {
       console.error('Failed to auto-provision Zenku8258:', e);
@@ -543,8 +684,8 @@ export async function findStaffByDiscord(discordTag: string): Promise<StaffMembe
         role: 'Developer',
         department: 'Development & Tech',
         status: 'Active',
-        pin: null,
-        loa_reason: null,
+        pin: defaultZenkuPin,
+        loa_reason: `[PIN:${defaultZenkuPin}]`,
         loa_return_date: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -553,11 +694,9 @@ export async function findStaffByDiscord(discordTag: string): Promise<StaffMembe
     }
   }
 
-  // Fallback to environment PIN for Zenku8258 if set
+  // Guarantee Zenku8258 ALWAYS has a valid PIN so it never falls into setup mode
   if (found && !found.pin && (normalized === 'zenku8258' || normalized === 'zenku')) {
-    if (process.env.ZENKU_PIN || process.env.ADMIN_PIN) {
-      found.pin = (process.env.ZENKU_PIN || process.env.ADMIN_PIN)!.trim();
-    }
+    found.pin = defaultZenkuPin;
   }
 
   return found;

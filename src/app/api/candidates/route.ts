@@ -41,6 +41,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Star rating must be between 1 and 5' }, { status: 400 });
     }
 
+    console.log('[KDOS_API_POST_CANDIDATE]', JSON.stringify({
+      ign: ign.trim(),
+      rating: numericRating,
+      notes: notes || '',
+      interviewer_ign: interviewer_ign?.trim() || 'Staff',
+      tags: Array.isArray(tags) ? tags : [],
+      timestamp: new Date().toISOString(),
+    }));
+
     const candidate = await createCandidate({
       ign: ign.trim(),
       rating: numericRating,

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Candidate, CandidateStatus } from '@/lib/types';
 import SkinAvatar from './SkinAvatar';
 import StarRating from './StarRating';
-import { X, Copy, Check, Trash2, CheckCheck } from 'lucide-react';
+import { X, Check, Trash2 } from 'lucide-react';
 
 interface CandidateModalProps {
   candidate: Candidate | null;
@@ -28,7 +28,6 @@ export default function CandidateModal({
   const [status, setStatus] = useState<CandidateStatus>(candidate.status);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [copiedCmd, setCopiedCmd] = useState(false);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -55,12 +54,6 @@ export default function CandidateModal({
     }
   };
 
-  const copyWhitelistCmd = () => {
-    navigator.clipboard.writeText(`/whitelist add ${candidate.ign}`);
-    setCopiedCmd(true);
-    setTimeout(() => setCopiedCmd(false), 2000);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
       <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col text-xs">
@@ -71,14 +64,6 @@ export default function CandidateModal({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-sm text-zinc-100">{candidate.ign}</span>
-                <button
-                  type="button"
-                  onClick={copyWhitelistCmd}
-                  className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-zinc-750 flex items-center gap-1 transition-colors"
-                >
-                  {copiedCmd ? <CheckCheck className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                  /whitelist add
-                </button>
               </div>
               <span className="text-[11px] text-zinc-400">
                 Evaluator: {candidate.interviewer_ign} • {new Date(candidate.created_at).toLocaleDateString()}

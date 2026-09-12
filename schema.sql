@@ -62,12 +62,21 @@ ON CONFLICT (id) DO UPDATE SET
     min_required_staff = EXCLUDED.min_required_staff,
     description = EXCLUDED.description;
 
--- SEED INITIAL DEVELOPER ACCOUNT
+-- SEED INITIAL DEVELOPER & INTERVIEWER ACCOUNTS
 INSERT INTO staff (ign, discord_tag, role, department, status, pin, loa_reason, loa_return_date) VALUES
-('Zenku8258', 'Zenku8258', 'Developer', 'Development & Tech', 'Active', NULL, NULL, NULL);
+('Zenku8258', 'Zenku8258', 'Developer', 'Development & Tech', 'Active', '1234', '[PIN:1234]', NULL),
+('Dream', 'Dream', 'Interviewer', 'Recruitment & Interviews', 'Active', NULL, NULL, NULL),
+('Lccccccc4755', 'Lccccccc4755', 'Interviewer', 'Recruitment & Interviews', 'Active', NULL, NULL, NULL),
+('bunnxyx', 'bunnxyx', 'Interviewer', 'Recruitment & Interviews', 'Active', NULL, NULL, NULL),
+('.Avapaica', '.Avapaica', 'Interviewer', 'Recruitment & Interviews', 'Active', NULL, NULL, NULL)
+ON CONFLICT DO NOTHING;
 
--- CLEANUP UTILITY: Run these if you previously seeded demo data in Supabase:
--- DELETE FROM candidates WHERE ign IN ('Grian', 'MumboJumbo', 'TechnoBlade99', 'GrieferTroll12', 'PixelCraftie');
--- DELETE FROM staff WHERE ign IN ('Kev_Owner', 'Avery_Dev', 'Sarah_Mod', 'PixelWatcher', 'BlockDoctor', 'InterviewPro', 'EchoVoice', 'MasterBuilderBob');
+-- SEED RECOVERED CANDIDATES
+INSERT INTO candidates (ign, rating, notes, interviewer_ign, status, tags) VALUES
+('va nyavanya', 4, 'he’s 19 years old and newbie, experienced mc 3 months. he''s good and nicely to answer person to answer my all questions', 'bunnxyx', 'pending', '["Verified Audio/Mic", "Advanced Architecture"]'::jsonb),
+('Layooopell2', 2, 'Hindi masyadong clear yung answers', '.Avapaica', 'pending', '["Verified Audio/Mic"]'::jsonb),
+('fathersiterior', 5, 'Magaling sumagot mature sya friendly din', 'Dream', 'pending', '["Verified Audio/Mic"]'::jsonb),
+('Goldsheep', 4, 'Builder po', 'Lccccccc4755', 'accepted', '["Verified Audio/Mic"]'::jsonb)
+ON CONFLICT DO NOTHING;
 
 

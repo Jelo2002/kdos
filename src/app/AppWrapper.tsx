@@ -1,15 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '@/components/Navbar';
-import WhitelistModal from '@/components/WhitelistModal';
 import LoginScreen from '@/components/LoginScreen';
 import { useRole } from '@/components/RoleContext';
 import { Shield } from 'lucide-react';
 
 export default function AppWrapper({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoadingAuth } = useRole();
-  const [whitelistModalOpen, setWhitelistModalOpen] = useState(false);
 
   // Loading state while checking localStorage session
   if (isLoadingAuth) {
@@ -49,19 +47,13 @@ export default function AppWrapper({ children }: { children: React.ReactNode }) 
   // Authenticated: Render full application with Navbar and tools
   return (
     <div className="flex flex-col min-h-screen bg-zinc-950 text-zinc-100">
-      <Navbar onOpenWhitelist={() => setWhitelistModalOpen(true)} />
+      <Navbar />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
         {children}
       </main>
       <footer className="border-t border-zinc-900 py-3.5 text-center text-xs text-zinc-500">
         KDOS Operations System • Candidate Management & Workforce Capacity
       </footer>
-
-      {/* Global Whitelist Modal */}
-      <WhitelistModal
-        isOpen={whitelistModalOpen}
-        onClose={() => setWhitelistModalOpen(false)}
-      />
     </div>
   );
 }

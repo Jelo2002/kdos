@@ -6,12 +6,12 @@ import { useRole } from '@/components/RoleContext';
 import { Candidate, CandidateStatus, SystemStats } from '@/lib/types';
 import SkinAvatar from '@/components/SkinAvatar';
 import CandidateModal from '@/components/CandidateModal';
-import WhitelistModal from '@/components/WhitelistModal';
+import BackupModal from '@/components/BackupModal';
+import { syncLocalVaultWithRemote, getLocalVault } from '@/lib/backup';
 import { 
   Users, 
   Search, 
   Download, 
-  Terminal, 
   Plus, 
   Check, 
   X, 
@@ -20,21 +20,17 @@ import {
   Star,
   FileSpreadsheet,
   ChevronRight,
-  Filter
+  Filter,
+  ShieldCheck,
+  Upload
 } from 'lucide-react';
 
 export default function CandidateDashboard() {
-  const { role, isOwnerOrDev } = useRole();
+  const { role, isOwnerOrDev, staffName } = useRole();
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [stats, setStats] = useState<SystemStats['candidates']>({
-    total: 0,
-    accepted: 0,
-    pending: 0,
-    rejected: 0,
-    avgRating: 0,
-  });
   const [loading, setLoading] = useState(true);
+  const [localVaultCount, setLocalVaultCount] = useState(0);
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,24 +41,47 @@ export default function CandidateDashboard() {
   // Modals
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
-  const [isWhitelistModalOpen, setIsWhitelistModalOpen] = useState(false);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
+
+  // Direct Synchronous Stats Calculation: Mathematically guaranteed to match candidate records
+  const stats = useMemo(() => {
+    const total = candidates.length;
+    const accepted = candidates.filter((c) => c.status === 'accepted').length;
+    const pending = candidates.filter((c) => c.status === 'pending').length;
+    const rejected = candidates.filter((c) => c.status === 'rejected').length;
+    const totalScore = candidates.reduce((sum, c) => sum + (Number(c.rating) || 0), 0);
+    const avgRating = total > 0 ? Number((totalScore / total).toFixed(1)) : 0;
+    return { total, accepted, pending, rejected, avgRating };
+  }, [candidates]);
 
   const fetchCandidates = async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/candidates');
       const data = await res.json();
-      if (data.success && Array.isArray(data.candidates)) {
-        setCandidates(data.candidates);
-      }
+      const serverList = data.success && Array.isArray(data.candidates) ? data.candidates : [];
 
-      const statsRes = await fetch('/api/stats');
-      const statsData = await statsRes.json();
-      if (statsData.success && statsData.stats?.candidates) {
-        setStats(statsData.stats.candidates);
+      // Reconcile with local browser vault
+      const { merged, hasNewLocalRecords } = syncLocalVaultWithRemote(serverList);
+      setCandidates(merged);
+      setLocalVaultCount(merged.length);
+
+      // If local device has candidate scorecards that the server is missing, push background sync
+      if (hasNewLocalRecords) {
+        fetch('/api/candidates/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ candidates: merged }),
+        }).catch((e) => console.warn('Background candidate sync failed:', e));
       }
     } catch (err) {
       console.error('Error fetching candidates:', err);
+      // Offline fallback: load from local vault
+      const local = getLocalVault();
+      if (local.length > 0) {
+        setCandidates(local);
+        setLocalVaultCount(local.length);
+      }
     } finally {
       setLoading(false);
     }
@@ -86,12 +105,6 @@ export default function CandidateDashboard() {
       });
 
       if (!res.ok) throw new Error('Status update failed');
-
-      const statsRes = await fetch('/api/stats');
-      const statsData = await statsRes.json();
-      if (statsData.success) {
-        setStats(statsData.stats.candidates);
-      }
     } catch (err) {
       console.error('Error updating status:', err);
       fetchCandidates();
@@ -196,6 +209,23 @@ export default function CandidateDashboard() {
         </div>
 
         <div className="flex items-center gap-2">
+          {localVaultCount > 0 && (
+            <div className="hidden md:flex items-center gap-1.5 px-2 py-1 rounded bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Vault: <strong className="text-zinc-200 font-mono">{localVaultCount}</strong></span>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setIsBackupModalOpen(true)}
+            className="px-2.5 py-1.5 rounded-md text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-zinc-100 hover:bg-zinc-850 transition-colors flex items-center gap-1.5"
+            title="Export full JSON backup, restore candidates, or bulk-import from text"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Backup & Restore</span>
+          </button>
+
           <button
             type="button"
             onClick={handleExportCsv}
@@ -204,15 +234,6 @@ export default function CandidateDashboard() {
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-400" />
             <span>Export CSV</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setIsWhitelistModalOpen(true)}
-            className="px-2.5 py-1.5 rounded-md text-xs font-medium bg-zinc-900 border border-zinc-800 text-zinc-200 hover:bg-zinc-850 transition-colors flex items-center gap-1.5"
-          >
-            <Terminal className="w-3.5 h-3.5 text-zinc-400" />
-            <span>Sync Whitelist ({stats.accepted})</span>
           </button>
 
           <Link
@@ -511,10 +532,15 @@ export default function CandidateDashboard() {
         onDelete={handleDeleteCandidate}
       />
 
-      {/* Whitelist Modal */}
-      <WhitelistModal
-        isOpen={isWhitelistModalOpen}
-        onClose={() => setIsWhitelistModalOpen(false)}
+      {/* Backup, Restore & Bulk Import Modal */}
+      <BackupModal
+        isOpen={isBackupModalOpen}
+        onClose={() => setIsBackupModalOpen(false)}
+        candidates={candidates}
+        onImportComplete={(imported) => {
+          fetchCandidates();
+        }}
+        currentStaffName={staffName}
       />
     </div>
   );

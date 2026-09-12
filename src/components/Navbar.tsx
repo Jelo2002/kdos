@@ -9,7 +9,6 @@ import {
   Users, 
   ClipboardCheck, 
   ShieldCheck, 
-  Terminal, 
   LogOut, 
   ChevronDown, 
   Menu, 
@@ -19,11 +18,7 @@ import {
 } from 'lucide-react';
 import { ActiveRole } from '@/lib/types';
 
-interface NavbarProps {
-  onOpenWhitelist?: () => void;
-}
-
-export default function Navbar({ onOpenWhitelist }: NavbarProps) {
+export default function Navbar() {
   const pathname = usePathname();
   const { role, setRole, isOwnerOrDev, user, staffName, logout } = useRole();
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
@@ -124,17 +119,6 @@ export default function Navbar({ onOpenWhitelist }: NavbarProps) {
 
           {/* Right Area */}
           <div className="flex items-center gap-2.5">
-            {/* Whitelist quick button */}
-            {isOwnerOrDev && onOpenWhitelist && (
-              <button
-                type="button"
-                onClick={onOpenWhitelist}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 hover:text-zinc-100 transition-colors"
-              >
-                <Terminal className="w-3.5 h-3.5 text-zinc-400" />
-                <span>Whitelist Sync</span>
-              </button>
-            )}
 
             {/* User Profile */}
             <div className="flex items-center gap-2 pl-2 border-l border-zinc-800 text-xs">
